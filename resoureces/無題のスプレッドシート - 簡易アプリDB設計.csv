@@ -1,0 +1,114 @@
+ER図,,,,,,,,,,
+,リンク：,https://www.figma.com/board/uBXk3HBOYn8jfbxMLIwG0a/RepMate-ER%E5%9B%B3?node-id=0-1&t=nu0QinYZxMUiXzky-1,,,,,,,,
+,,,,,,,,,,
+テーブル定義書,,,,,,,,,,
+,,users,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,ユーザーID,UUID,○,AUTO_INCREMENT,システム内部でユーザーを識別するID
+,,2,,,login_id,ログインID,varchar(100),○,,半角英数字4文字以上、ユニーク
+,,3,,,email,メールアドレス,varchar(255),○,,ユーザー登録に使用するメールアドレス
+,,4,,,password_hash,パスワード,varchar(255),○,,ハッシュ化して保存
+,,5,,,name,名前,varchar(100),○,,マイページで編集可能
+,,6,,,created_at,作成日時,timestamptz,○,CURRENT_TIMESTAMP,アカウント作成日時
+,,7,,,updated_at,更新日時,timestamptz,○,CURRENT_TIMESTAMP,ユーザー情報更新日時
+,,,,,,,,,,
+,,exercises,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,種目ID,UUID,○,AUTO_INCREMENT,種目を一意に識別
+,,2,,,name,種目名,varchar(100),○,,例：ベンチプレス
+,,3,,,created_at,作成日時,timestamptz,○,CURRENT_TIMESTAMP,種目登録日時
+,,4,,,updated_at,更新日時,timestamptz,○,CURRENT_TIMESTAMP,種目更新日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,consultations,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,相談ID,UUID,○,AUTO_INCREMENT,相談を一意に識別
+,,2,,○,user_id,ユーザーID,UUID,○,,users.idを参照
+,,3,,○,exercise_id,種目ID,UUID,○,,exercises.idを参照
+,,4,,,created_at,作成日時,timestamptz,○,CURRENT_TIMESTAMP,相談開始日時
+,,5,,,updated_at,更新日時,timestamptz,○,CURRENT_TIMESTAMP,相談更新日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,consultation_messages,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,チャットID,UUID,○,AUTO_INCREMENT,メッセージを一意に識別
+,,2,,○,consultation_id,相談ID,UUID,○,,consultations.idを参照
+,,3,,,sender_type,送信者,int,○,,1: user / 2: assistant
+,,4,,,message,メッセージ内容,text,○,,チャット本文
+,,5,,,created_at,送信日時,timestamptz,○,CURRENT_TIMESTAMP,メッセージ送信日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,training_goals,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,目標ID,UUID,○,AUTO_INCREMENT,目標を一意に識別
+,,2,,○,user_id,ユーザーID,UUID,○,,users.idを参照
+,,3,,○,consultation_id,相談ID,UUID,○,,consultations.idを参照
+,,4,,○,exercise_id,種目ID,UUID,○,,exercises.idを参照
+,,5,,,title,タイトル,varchar(100),○,,例：ベンチプレス 強度アップ
+,,6,,,description,説明,text,○,,例：80kg × 5レップス × 4セットを完遂。
+,,7,,,goal_date,目標日,date,○,,目標に取り組む日
+,,8,,,created_at,作成日時,timestamptz,○,CURRENT_TIMESTAMP,目標生成日時
+,,9,,,updated_at,更新日時,timestamptz,○,CURRENT_TIMESTAMP,目標更新日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,reports,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,報告ID,UUID,○,AUTO_INCREMENT,報告を一意に識別
+,,2,,○,user_id,ユーザーID,UUID,○,,users.idを参照
+,,3,,○,exercise_id,種目ID,UUID,○,,exercises.idを参照
+,,4,,,created_at,作成日時,timestamptz,○,CURRENT_TIMESTAMP,報告開始日時
+,,5,,,updated_at,更新日時,timestamptz,○,CURRENT_TIMESTAMP,報告更新日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,report_messages,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,チャットID,UUID,○,AUTO_INCREMENT,メッセージを一意に識別
+,,2,,○,report_id,報告ID,UUID,○,,reports.idを参照
+,,3,,,sender_type,送信者,varchar(20),○,,user / assistant
+,,4,,,message,メッセージ内容,text,○,,チャット本文
+,,5,,,created_at,送信日時,timestamptz,○,CURRENT_TIMESTAMP,メッセージ送信日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,training_records,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,記録ID,UUID,○,AUTO_INCREMENT,トレーニング記録を一意に識別
+,,2,,○,user_id,ユーザーID,UUID,○,,users.idを参照
+,,3,,○,report_id,報告ID,UUID,○,,reports.idを参照
+,,4,,○,exercise_id,種目ID,UUID,○,,exercises.idを参照
+,,5,,,weight,重量,"decimal(6,2)",○,,kg
+,,6,,,reps,回数,int,○,,実施回数
+,,7,,,memo,メモ,text,,NULL,トレーニングに関するメモ
+,,8,,,recorded_at,記録日時,timestamptz,○,,トレーニングを実施した日時
+,,9,,,created_at,作成日時,timestamptz,○,CURRENT_TIMESTAMP,記録登録日時
+,,10,,,updated_at,更新日時,timestamptz,○,CURRENT_TIMESTAMP,記録更新日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,progress_feedback,,,,,,,,
+,,No,PK,FK,カラム名,項目名,データ型,NOT NULL,デフォルト,備考
+,,1,○,,id,フィードバックID,UUID,○,AUTO_INCREMENT,AIフィードバックを一意に識別
+,,2,,○,user_id,ユーザーID,UUID,○,,users.idを参照
+,,3,,○,exercise_id,種目ID,UUID,○,,exercises.idを参照
+,,4,,,content,内容,text,○,,AIが生成した成長に関するフィードバック
+,,5,,,created_at,作成日時,timestamptz,○,CURRENT_TIMESTAMP,フィードバック生成日時
+,,6,,,updated_at,更新日時,timestamptz,○,CURRENT_TIMESTAMP,フィードバック更新日時
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,progress_calculated,,,,,,,,
+,,,,,データ項目,保存方法,説明,,,
+,,,,,推定1RM,training_recordsから算出,重量・回数から推定1RMを算出。DBには専用カラムを作らない,,,
+,,,,,1RM自己ベスト,training_recordsから算出,過去の記録から算出した1RMの最高値,,,
+,,,,,5RM自己ベスト,training_recordsから算出,過去の記録における5回での最高重量,,,
+,,,,,10RM自己ベスト,training_recordsから算出,過去の記録における10回での最高重量,,,
+,,,,,推定1RMの推移データ,training_recordsから算出,記録日時ごとの推定1RMを時系列で生成し、グラフ等に利用,,,

@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link";
+import { useState } from "react";
 
 const assets = {
   logo: "/assets/repmate-logo.svg",
@@ -13,8 +16,6 @@ type AuthInputProps = {
   placeholder: string;
   icon: "user" | "mail" | "lock";
 };
-
-const genderOptions = ["男性", "女性", "その他"] as const;
 
 const AuthInput = ({ label, type, placeholder, icon }: AuthInputProps) => (
   <label className="flex w-full flex-col gap-2">
@@ -31,16 +32,24 @@ const AuthInput = ({ label, type, placeholder, icon }: AuthInputProps) => (
   </label>
 );
 
-const GenderSelector = () => (
-  <div className="flex w-full flex-col gap-2">
+const genderOptions = ["男性", "女性", "その他"] as const;
+type Gender = (typeof genderOptions)[number];
+
+const GenderSelector = () => {
+
+  const [selectedGender, setSelectedGender] = useState<Gender>("男性");
+
+  return (
+    <div className="flex w-full flex-col gap-2">
     <p className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">性別</p>
     <div className="flex h-11 w-full gap-1 rounded-[14px] border border-[#242c3b] bg-[#141822] p-1 min-[769px]:h-12">
-      {genderOptions.map((option, index) => {
-        const active = index === 0;
+      {genderOptions.map((option) => {
+        const active = selectedGender === option;
         return (
           <button
             key={option}
             type="button"
+            onClick={() => setSelectedGender(option)}
             className={`flex min-w-0 flex-1 items-center justify-center rounded-[10px] text-[13px] transition-colors ${
               active
                 ? "bg-[#1856ed] font-bold text-[#f9fafb]"
@@ -53,7 +62,9 @@ const GenderSelector = () => (
       })}
     </div>
   </div>
-);
+  );
+};
+
 
 const SignupForm = () => (
   <form className="flex w-full flex-col gap-3 min-[769px]:gap-4">
