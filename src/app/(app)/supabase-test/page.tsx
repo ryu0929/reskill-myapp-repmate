@@ -1,13 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
+import type { Task } from "./_types/task";
 
-type Task = {
-  id: string;
-  title: string;
-  description: string | null;
-  status: string;
-  userId: string;
-  createdAt: string;
-};
 
 const SupabaseTestPage = async () => {
   const supabase = await createClient();

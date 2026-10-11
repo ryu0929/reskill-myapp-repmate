@@ -1,4 +1,4 @@
-import ReportScreen from "@/components/ReportScreen";
+import ReportScreen from "./_components/ReportScreen";
 
 const ReportPage = () => <ReportScreen />;
 

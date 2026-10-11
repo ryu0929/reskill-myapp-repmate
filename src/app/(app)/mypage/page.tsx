@@ -1,4 +1,4 @@
-import MypageScreen from "@/components/MypageScreen";
+import MypageScreen from "./_components/MypageScreen";
 
 const Mypage = () => <MypageScreen />;
 

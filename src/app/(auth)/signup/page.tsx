@@ -1,4 +1,4 @@
-import { SignupScreen } from "@/components/auth/SignupScreen";
+import { SignupScreen } from "./_components/SignupScreen";
 
 const SignupPage = () => <SignupScreen />;
 

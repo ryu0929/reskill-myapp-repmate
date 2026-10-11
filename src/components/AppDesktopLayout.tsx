@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import type { AppTabId } from "@/components/AppTabBar";
+import type { AppDesktopLayoutProps, DesktopHeaderProps, DesktopNavigationItem, DesktopNavItemProps, DesktopPageMeta, DesktopSidebarProps } from "@/components/_types/app-desktop-layout";
 
 const assets = {
   avatar: "/assets/avatar.png",
@@ -15,14 +14,14 @@ const assets = {
   tabProgress: "/assets/tab-progress.svg",
 } as const;
 
-const navigationItems: { label: string; href: string; icon: string; id: AppTabId }[] = [
+const navigationItems: DesktopNavigationItem[] = [
   { label: "HOME", href: "/", icon: assets.tabHome, id: "home" },
   { label: "CONSULT", href: "/consult", icon: assets.tabConsult, id: "consult" },
   { label: "REPORT", href: "/report", icon: assets.tabReport, id: "report" },
   { label: "PROGRESS", href: "/progress", icon: assets.tabProgress, id: "progress" },
 ];
 
-const desktopPageMeta: Record<string, { active: AppTabId; title: string; subtitle: string }> = {
+const desktopPageMeta: Record<string, DesktopPageMeta> = {
   "/": {
     active: "home",
     title: "おかえりなさい、太郎さん",
@@ -64,12 +63,7 @@ const DesktopNavItem = ({
   href,
   icon,
   active,
-}: {
-  label: string;
-  href: string;
-  icon: string;
-  active: boolean;
-}) => (
+}: DesktopNavItemProps) => (
   <Link
     href={href}
     className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-3 transition-colors ${
@@ -87,7 +81,7 @@ const DesktopNavItem = ({
   </Link>
 );
 
-const DesktopSidebar = ({ active, userName }: { active: AppTabId; userName: string }) => (
+const DesktopSidebar = ({ active, userName }: DesktopSidebarProps) => (
   <aside className="flex w-[248px] shrink-0 flex-col justify-between border-r border-[#273142] bg-[#111620] px-5 pb-6 pt-[30px]">
     <div className="flex flex-col gap-8">
       <HeaderLogo />
@@ -115,12 +109,7 @@ const DesktopHeader = ({
   title,
   subtitle,
   userName,
-}: {
-  active: AppTabId;
-  title: string;
-  subtitle: string;
-  userName: string;
-}) => (
+}: DesktopHeaderProps) => (
   <header className="flex h-[88px] shrink-0 items-center justify-between border-b border-[#273142] px-10">
     <div className="min-w-0">
       {active === "home" ? (
@@ -156,10 +145,7 @@ const DesktopHeader = ({
 export const AppDesktopLayout = ({
   children,
   userName = defaultUserName,
-}: {
-  children: ReactNode;
-  userName?: string;
-}) => {
+}: AppDesktopLayoutProps) => {
   const pathname = usePathname();
   const meta = getDesktopPageMeta(pathname);
 

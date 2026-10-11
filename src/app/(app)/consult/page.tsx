@@ -1,4 +1,4 @@
-import { ConsultScreen } from "@/components/ConsultScreen";
+import { ConsultScreen } from "./_components/ConsultScreen";
 
 const ConsultPage = () => <ConsultScreen />;
 

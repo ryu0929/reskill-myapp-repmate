@@ -1,4 +1,4 @@
-import ProgressScreen from "@/components/ProgressScreen";
+import ProgressScreen from "./_components/ProgressScreen";
 
 const ProgressPage = () => <ProgressScreen />;
 

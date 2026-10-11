@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import type { ChatApiMessage } from "@/lib/chat-types";
+import type { ChatRequestBody } from "./_types/chat";
 
 const SYSTEM_PROMPT = `あなたはフィットネスアプリ「RepMate」のAIトレーナーです。
 ユーザーとの相談では、安全で実行可能なトレーニング提案を日本語で簡潔に返してください。
 医学的診断はせず、痛みや異常がある場合は専門家への相談を促してください。`;
 
-type ChatRequestBody = {
-  exercise?: string;
-  messages?: ChatApiMessage[];
-};
 
 const fallbackReply = (exercise: string, latestUserMessage: string): string => {
   const snippet =

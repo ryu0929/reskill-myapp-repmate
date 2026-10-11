@@ -1,13 +1,5 @@
 import Link from "next/link";
-
-export type AppTabId = "home" | "consult" | "report" | "progress";
-
-type TabConfig = {
-  id: AppTabId;
-  href: string;
-  label: string;
-  icon: string;
-};
+import type { AppTabBarProps, TabConfig } from "@/components/_types/app-tab-bar";
 
 const homeTabs: TabConfig[] = [
   { id: "home", href: "/", label: "home", icon: "/assets/tab-home.svg" },
@@ -23,10 +15,6 @@ const consultTabs: TabConfig[] = [
   { id: "progress", href: "/progress", label: "PROGRESS", icon: "/assets/consult/tab-progress.svg" },
 ];
 
-type AppTabBarProps = {
-  active: AppTabId;
-  variant?: "home" | "consult";
-};
 
 export const AppTabBar = ({ active, variant = "home" }: AppTabBarProps) => {
   const tabs = variant === "consult" ? consultTabs : homeTabs;

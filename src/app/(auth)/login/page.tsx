@@ -1,4 +1,4 @@
-import { LoginScreen } from "@/components/auth/LoginScreen";
+import { LoginScreen } from "./_components/LoginScreen";
 
 const LoginPage = () => <LoginScreen />;
 

@@ -1,13 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { AppDesktopLayout } from "@/components/AppDesktopLayout";
-
-type ResponsiveScreenProps = {
-  mobile: ReactNode;
-  desktop: ReactNode;
-  userName?: string;
-};
+import type { ResponsiveScreenProps } from "@/components/_types/responsive-screen";
 
 export const ResponsiveScreen = ({ mobile, desktop, userName }: ResponsiveScreenProps) => (
   <>

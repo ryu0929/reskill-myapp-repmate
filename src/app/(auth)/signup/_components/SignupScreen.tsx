@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { genderOptions } from "../_types/signup";
+import type { AuthInputProps, Gender } from "../_types/signup";
 
 const assets = {
   logo: "/assets/repmate-logo.svg",
@@ -10,12 +12,6 @@ const assets = {
   lock: "/assets/auth/lock.svg",
 } as const;
 
-type AuthInputProps = {
-  label: string;
-  type: "text" | "email" | "password";
-  placeholder: string;
-  icon: "user" | "mail" | "lock";
-};
 
 const AuthInput = ({ label, type, placeholder, icon }: AuthInputProps) => (
   <label className="flex w-full flex-col gap-2">
@@ -32,8 +28,6 @@ const AuthInput = ({ label, type, placeholder, icon }: AuthInputProps) => (
   </label>
 );
 
-const genderOptions = ["男性", "女性", "その他"] as const;
-type Gender = (typeof genderOptions)[number];
 
 const GenderSelector = () => {
 

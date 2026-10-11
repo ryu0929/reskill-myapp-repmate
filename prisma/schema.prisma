@@ -8,14 +8,154 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Task {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  status      String   @default("todo")
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Profile {
+  id        String   @id @db.Uuid
+  name      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  consultations    Consultation[]
+  trainingGoals    TrainingGoal[]
+  reports          Report[]
+  trainingRecords  TrainingRecord[]
+  progressFeedback ProgressFeedback[]
+
+  @@map("profiles")
+}
+
+model Exercise {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  consultations    Consultation[]
+  trainingGoals    TrainingGoal[]
+  reports          Report[]
+  trainingRecords  TrainingRecord[]
+  progressFeedback ProgressFeedback[]
+
+  @@map("exercises")
+}
+
+model Consultation {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  exerciseId String   @map("exercise_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user          Profile               @relation(fields: [userId], references: [id])
+  exercise      Exercise              @relation(fields: [exerciseId], references: [id])
+  messages      ConsultationMessage[]
+  trainingGoals TrainingGoal[]
 
   @@index([userId])
+  @@index([exerciseId])
+  @@map("consultations")
+}
+
+model ConsultationMessage {
+  id             String   @id @default(uuid()) @db.Uuid
+  consultationId String   @map("consultation_id") @db.Uuid
+  senderType     Int      @map("sender_type")
+  message        String   @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  consultation Consultation @relation(fields: [consultationId], references: [id])
+
+  @@index([consultationId])
+  @@map("consultation_messages")
+}
+
+model TrainingGoal {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  consultationId String    @map("consultation_id") @db.Uuid
+  exerciseId     String    @map("exercise_id") @db.Uuid
+  title          String    @db.VarChar(100)
+  description    String    @db.Text
+  goalDate       DateTime  @map("goal_date") @db.Date
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  status         String    @default("active") @db.VarChar(20)
+  completedAt    DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  user         Profile      @relation(fields: [userId], references: [id])
+  consultation Consultation @relation(fields: [consultationId], references: [id])
+  exercise     Exercise     @relation(fields: [exerciseId], references: [id])
+
+  @@index([userId])
+  @@index([consultationId])
+  @@index([exerciseId])
+  @@map("training_goals")
+}
+
+model Report {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  exerciseId String   @map("exercise_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user            Profile          @relation(fields: [userId], references: [id])
+  exercise        Exercise         @relation(fields: [exerciseId], references: [id])
+  messages        ReportMessage[]
+  trainingRecords TrainingRecord[]
+
+  @@index([userId])
+  @@index([exerciseId])
+  @@map("reports")
+}
+
+model ReportMessage {
+  id         String   @id @default(uuid()) @db.Uuid
+  reportId   String   @map("report_id") @db.Uuid
+  senderType Int      @map("sender_type")
+  message    String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  report Report @relation(fields: [reportId], references: [id])
+
+  @@index([reportId])
+  @@map("report_messages")
+}
+
+model TrainingRecord {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  reportId   String?  @map("report_id") @db.Uuid
+  exerciseId String   @map("exercise_id") @db.Uuid
+  weight     Decimal  @db.Decimal(6, 2)
+  reps       Int
+  setOrder   Int      @map("set_order")
+  memo       String?  @db.Text
+  recordedAt DateTime @map("recorded_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     Profile  @relation(fields: [userId], references: [id])
+  report   Report?  @relation(fields: [reportId], references: [id])
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+
+  @@index([userId, recordedAt])
+  @@index([reportId])
+  @@index([exerciseId])
+  @@map("training_records")
+}
+
+model ProgressFeedback {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  exerciseId String   @map("exercise_id") @db.Uuid
+  content    String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     Profile  @relation(fields: [userId], references: [id])
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+
+  @@index([userId])
+  @@index([exerciseId])
+  @@map("progress_feedback")
 }

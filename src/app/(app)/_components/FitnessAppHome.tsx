@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AppTabBar } from "@/components/AppTabBar";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import type { FitnessAppHomeProps, GoalSummary } from "../_types/home";
 
 const assets = {
   avatar: "/assets/avatar.png",
@@ -20,16 +21,6 @@ const assets = {
 } as const;
 
 
-type GoalSummary = {
-  name: string;
-  statusLabel: string;
-  description: string;
-};
-
-type FitnessAppHomeProps = {
-  goal?: GoalSummary | null;
-  userName?: string;
-};
 
 const ActionCard = ({
   title,

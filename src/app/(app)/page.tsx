@@ -1,4 +1,4 @@
-import { FitnessAppHome } from "@/components/FitnessAppHome";
+import { FitnessAppHome } from "./_components/FitnessAppHome";
 
 const Home = () => <FitnessAppHome />;
 

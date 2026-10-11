@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { AuthInputProps } from "../_types/login";
 
 const assets = {
   logo: "/assets/repmate-logo.svg",
@@ -6,13 +7,6 @@ const assets = {
   lock: "/assets/auth/lock.svg",
 } as const;
 
-
-type AuthInputProps = {
-  label: string;
-  type: "email" | "password";
-  placeholder: string;
-  icon: "mail" | "lock";
-};
 
 const AuthInput = ({
   label,

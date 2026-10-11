@@ -4,36 +4,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import { EXERCISES } from "../_types/progress";
+import type { ChartPoint, Exercise, PersonalBest, ProgressData, ProgressScreenProps } from "../_types/progress";
 
-type PersonalBest = {
-  label: string;
-  date: string;
-  value: number;
-  highlight?: boolean;
-};
-
-type ChartPoint = {
-  label: string;
-  value: number;
-};
-
-type ProgressData = {
-  exercise: (typeof EXERCISES)[number];
-  estimatedOneRepMax: number;
-  trendRate: number;
-  chart: ChartPoint[];
-  personalBests: PersonalBest[];
-  aiComment: string;
-};
-
-type ProgressScreenProps = {
-  data?: ProgressData;
-  userName?: string;
-};
-
-const EXERCISES = ["ベンチプレス", "スクワット", "デッドリフト", "ショルダープレス"] as const;
-
-type Exercise = (typeof EXERCISES)[number];
 
 const assets = {
   avatar: "/assets/consult/avatar.png",

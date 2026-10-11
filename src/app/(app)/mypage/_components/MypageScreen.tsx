@@ -1,28 +1,13 @@
 import Image from "next/image";
+import type { MypageScreenProps, ProfileDetail, UserProfile } from "../_types/mypage";
 
 const assets = {
   avatar: "/assets/avatar.png",
   logo: "/assets/repmate-logo.svg",
 } as const;
 
-type ProfileDetail = {
-  label: string;
-  value: string;
-  action: string;
-};
 
-type MypageScreenProps = {
-  user?: {
-    name: string;
-    gender: string;
-    email: string;
-    trainingHistory: string;
-    streakLabel: string;
-    initials: string;
-  };
-};
-
-const defaultUser = {
+const defaultUser: UserProfile = {
   name: "山田 太郎",
   gender: "男性",
   email: "taro.yamada@example.com",
