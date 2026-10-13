@@ -1,7 +1,12 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createClient } from "@/lib/supabase/client";
 import { genderOptions } from "../_types/signup";
 import type { AuthInputProps, Gender } from "../_types/signup";
 
@@ -12,78 +17,181 @@ const assets = {
   lock: "/assets/auth/lock.svg",
 } as const;
 
+const signupSchema = z.object({
+  name: z.string().min(1, "名前を入力してください"),
+  gender: z.enum(genderOptions),
+  email: z.email("メールアドレスの形式が正しくありません"),
+  password: z.string().min(8, "パスワードは8文字以上で入力してください"),
+});
 
-const AuthInput = ({ label, type, placeholder, icon }: AuthInputProps) => (
+type SignupFormValues = z.infer<typeof signupSchema>;
+
+
+const AuthInput = ({ label, type, placeholder, icon, error, ...inputProps }: AuthInputProps) => (
   <label className="flex w-full flex-col gap-2">
-    <span className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">{label}</span>
+    <span className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">
+      {label}
+    </span>
     <span className="flex h-[50px] w-full items-center gap-3 rounded-[14px] border border-[#242c3b] bg-[#141822] px-4 min-[769px]:h-[54px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img alt="" className="size-[19px] shrink-0 min-[769px]:size-5" src={assets[icon]} />
       <input
         type={type}
         placeholder={placeholder}
+        // registerで渡された属性などを展開
+        {...inputProps}
         className="min-w-0 flex-1 bg-transparent text-sm text-[#f9fafb] outline-none placeholder:text-[#9ca3af] min-[769px]:text-[15px]"
       />
     </span>
+    {error && <p className="text-xs text-red-400">{error}</p>}
   </label>
 );
 
 
-const GenderSelector = () => {
-
-  const [selectedGender, setSelectedGender] = useState<Gender>("男性");
-
+const GenderSelector = ({
+  value, 
+  onChange
+}: {
+  value: Gender; 
+  onChange: (value: Gender) => void;
+}) => {
   return (
     <div className="flex w-full flex-col gap-2">
-    <p className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">性別</p>
-    <div className="flex h-11 w-full gap-1 rounded-[14px] border border-[#242c3b] bg-[#141822] p-1 min-[769px]:h-12">
-      {genderOptions.map((option) => {
-        const active = selectedGender === option;
-        return (
-          <button
-            key={option}
-            type="button"
-            onClick={() => setSelectedGender(option)}
-            className={`flex min-w-0 flex-1 items-center justify-center rounded-[10px] text-[13px] transition-colors ${
-              active
-                ? "bg-[#1856ed] font-bold text-[#f9fafb]"
-                : "font-normal text-[#9ca3af] hover:text-[#f9fafb]"
-            }`}
-          >
-            {option}
-          </button>
-        );
-      })}
+      <p className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">
+        性別
+      </p>
+
+      <div className="flex h-11 w-full gap-1 rounded-[14px] border border-[#242c3b] bg-[#141822] p-1 min-[769px]:h-12">
+        {genderOptions.map((option) => {
+          const active = value === option;
+
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              aria-pressed={active}
+              className={`flex min-w-0 flex-1 items-center justify-center rounded-[10px] text-[13px] transition-colors ${
+                active
+                  ? "bg-[#1856ed] font-bold text-[#f9fafb]"
+                  : "font-normal text-[#9ca3af] hover:text-[#f9fafb]"
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
     </div>
-  </div>
   );
 };
 
 
-const SignupForm = () => (
-  <form className="flex w-full flex-col gap-3 min-[769px]:gap-4">
-    <AuthInput label="名前" type="text" placeholder="山田 太郎" icon="user" />
-    <GenderSelector />
-    <AuthInput
-      label="メールアドレス"
-      type="email"
-      placeholder="you@example.com"
-      icon="mail"
-    />
-    <AuthInput
-      label="パスワード"
-      type="password"
-      placeholder="8文字以上"
-      icon="lock"
-    />
-    <button
-      type="submit"
-      className="mt-0 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1856ed] text-[15px] font-medium text-[#f9fafb] shadow-[0px_10px_28px_rgba(24,86,237,0.2)] transition-opacity hover:opacity-95 min-[769px]:mt-3 min-[769px]:h-[54px] min-[769px]:text-base min-[769px]:font-bold"
+const SignupForm = () => {
+  const router = useRouter();
+  const [serverError, setServerError] = useState("");
+
+  const {
+    register, 
+    control, 
+    handleSubmit, 
+    formState: { errors, isSubmitting },
+  } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      gender: "男性",
+      email: "",
+      password: "",
+    }
+  });
+
+  const onSubmit = async (values: SignupFormValues) => {
+    setServerError("");
+
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signUp({
+      email: values.email,
+      password: values.password,
+      options: {
+        data: {
+          name: values.name,
+          gender: values.gender,
+        }
+      }
+    });
+
+    if (error) {
+      setServerError(error.message);
+      return;
+    }
+
+    router.push("/");
+    router.refresh();
+  };
+
+
+  return (
+    <form 
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex w-full flex-col gap-3 min-[769px]:gap-4"
     >
-      アカウントを作成
-    </button>
-  </form>
-);
+      <AuthInput 
+        label="名前"
+        type="text"
+        placeholder="名前を入力してください"
+        icon="user"
+        {...register("name")}
+        error={errors.name?.message}
+      />
+
+      <Controller
+        name="gender"
+        control={control}
+        render={({ field }) => (
+          <GenderSelector
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
+
+      <AuthInput
+        label="メールアドレス"
+        type="email"
+        placeholder="you@example.com"
+        icon="mail"
+        {...register("email")}
+        error={errors.email?.message}
+      />
+
+      <AuthInput
+        label="パスワード"
+        type="password"
+        placeholder="8文字以上"
+        icon="lock"
+        {...register("password")}
+        error={errors.password?.message}
+      />
+
+      {serverError && (
+        <p role="alert" className="text-sm text-red-400">
+        {serverError}
+      </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-0 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1856ed] text-[15px] font-medium text-[#f9fafb] shadow-[0px_10px_28px_rgba(24,86,237,0.2)] transition-opacity hover:opacity-95 min-[769px]:mt-3 min-[769px]:h-[54px] min-[769px]:text-base min-[769px]:font-bold"
+      >
+        {isSubmitting ? "登録中..." : "アカウントを作成"}
+      </button>
+
+    </form>
+  );
+};
 
 export const SignupScreen = () => (
   <main className="flex min-h-screen items-center justify-center bg-[#050608] p-4">

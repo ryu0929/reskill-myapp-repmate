@@ -1,4 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createClient } from "@/lib/supabase/client";
 import type { AuthInputProps } from "../_types/login";
 
 const assets = {
@@ -7,55 +15,123 @@ const assets = {
   lock: "/assets/auth/lock.svg",
 } as const;
 
+const loginSchema = z.object({
+  email: z.email("有効なメールアドレスを入力してください"),
+  password: z.string().min(1, "パスワードを入力してください"),
+});
 
-const AuthInput = ({
-  label,
-  type,
-  placeholder,
-  icon,
-}: AuthInputProps) => (
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+const AuthInput = ({label, type, placeholder, icon, error, ...inputProps}: AuthInputProps) => (
   <label className="flex w-full flex-col gap-2">
-    <span className="text-xs font-medium text-[#9ca3af]">{label}</span>
+    <span className="text-xs font-medium text-[#9ca3af]">
+      {label}
+    </span>
+
     <span className="flex h-[50px] w-full items-center gap-3 overflow-hidden rounded-[14px] border border-[#242c3b] bg-[#141822] px-4">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" className="size-[19px] shrink-0" src={icon === "mail" ? assets.mail : assets.lock} />
+      <img
+        alt=""
+        className="size-[19px] shrink-0"
+        src={assets[icon]}
+      />
+
       <input
         type={type}
         placeholder={placeholder}
+        // registerで渡された属性などを展開
+        {...inputProps}
         className="min-w-0 flex-1 bg-transparent text-sm text-[#f9fafb] outline-none placeholder:text-[#9ca3af]"
       />
     </span>
+
+    {error && (
+      <p className="text-xs text-red-400">{error}</p>
+    )}
   </label>
 );
 
-const LoginForm = () => (
-  <form className="flex w-full flex-col gap-3">
-    <AuthInput
-      label="メールアドレス"
-      type="email"
-      placeholder="you@example.com"
-      icon="mail"
-    />
-    <AuthInput
-      label="パスワード"
-      type="password"
-      placeholder="8文字以上"
-      icon="lock"
-    />
-    <Link
-      href="#"
-      className="text-right text-xs font-medium text-[#1856ed] transition-opacity hover:opacity-80"
+const LoginForm = () => {
+  const router = useRouter();
+  const [serverError, setServerError] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (values: LoginFormValues) => {
+    setServerError("");
+
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: values.email,
+      password: values.password,
+    });
+
+    if (error) {
+      setServerError("メールアドレスまたはパスワードが正しくありません");
+      return;
+    }
+
+    router.push("/");
+    router.refresh();
+
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex w-full flex-col gap-3"
     >
-      パスワードを忘れた方
-    </Link>
-    <button
-      type="submit"
-      className="mt-0 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1856ed] text-[15px] font-medium text-[#f9fafb] shadow-[0px_10px_28px_rgba(24,86,237,0.2)] transition-opacity hover:opacity-95"
-    >
-      ログイン
-    </button>
-  </form>
-);
+      <AuthInput
+        label="メールアドレス"
+        type="email"
+        placeholder="you@example.com"
+        icon="mail"
+        {...register("email")}
+        error={errors.email?.message}
+      />
+
+      <AuthInput
+        label="パスワード"
+        type="password"
+        placeholder="8文字以上"
+        icon="lock"
+        {...register("password")}
+        error={errors.password?.message}
+      />
+
+      <Link
+        href="#"
+        className="text-right text-xs font-medium text-[#1856ed] transition-opacity hover:opacity-80"
+      >
+        パスワードを忘れた方
+      </Link>
+
+      {serverError && (
+        <p role="alert" className="text-sm text-red-400">
+          {serverError}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-0 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1856ed] text-[15px] font-medium text-[#f9fafb] shadow-[0px_10px_28px_rgba(24,86,237,0.2)] transition-opacity hover:opacity-95 disabled:opacity-50"
+      >
+        {isSubmitting ? "ログイン中..." : "ログイン"}
+      </button>
+    </form>
+  );
+};
 
 export const LoginScreen = () => (
   <main className="flex min-h-screen items-center justify-center bg-[#050608] p-4">
