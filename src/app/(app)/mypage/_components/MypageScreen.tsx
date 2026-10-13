@@ -1,16 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { MobileAppHeader } from "@/components/MobileAppHeader";
 import type { MypageScreenProps, ProfileDetail, UserProfile } from "../_types/mypage";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
-const assets = {
-  avatar: "/assets/avatarIcon.svg",
-  logo: "/assets/repmate-logo.svg",
-} as const;
 
 
 const defaultUser: UserProfile = {
@@ -21,26 +15,6 @@ const defaultUser: UserProfile = {
   streakLabel: "継続 12週間",
   initials: "RM",
 };
-
-const Header = () => (
-  <header className="flex h-[68px] w-full shrink-0 items-center justify-center px-5 py-4">
-    <div className="flex w-full max-w-[960px] items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className="relative h-9 w-[84px] shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
-        </div>
-      </div>
-      <Link
-        href="/mypage"
-        className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-        aria-label="マイページ"
-      >
-        <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
-      </Link>
-    </div>
-  </header>
-);
 
 const ProfileSummary = ({ user }: { user: typeof defaultUser }) => (
   <section className="flex w-full items-center gap-4 rounded-[14px] border border-[#293142] bg-[#141822] p-4 shadow-[0px_10px_28px_rgba(0,0,0,0.2)] min-[769px]:gap-5 min-[769px]:border-[#273142] min-[769px]:p-5 min-[769px]:shadow-none">
@@ -132,7 +106,7 @@ const MypageScreen = ({ user = defaultUser }: MypageScreenProps) => {
 
   return (
     <section className="flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-[20px] bg-[#0b0d12] min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px] min-[769px]:rounded-none min-[769px]:bg-[#080b10]">
-      <Header />
+      <MobileAppHeader />
       <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-5 pb-4 pt-6 min-[769px]:px-5 min-[769px]:py-0">
         <div className="flex w-full max-w-[335px] flex-col gap-5 min-[769px]:max-w-[420px] min-[769px]:gap-6">
           <ProfileSummary user={user} />

@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
+import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/report";
@@ -35,27 +35,6 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
   content: `${exercise}のトレーニングを記録しましょう！セットごとに重量とレップス数を教えてください。`,
   createdAt: new Date().toISOString(),
 });
-
-const ReportHeader = () => (
-  <header className="flex w-full shrink-0 items-center justify-between px-5 py-4">
-    <div className="flex items-center gap-2">
-      <div className="relative h-9 w-[84px] shrink-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
-      </div>
-      <span className="rounded bg-[#1856ed] px-1.5 py-0.5 font-[family-name:var(--font-urbanist)] text-[9px] font-bold text-[#0b0d12]">
-        AI
-      </span>
-    </div>
-    <Link
-      href="/mypage"
-      className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-      aria-label="マイページ"
-    >
-      <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
-    </Link>
-  </header>
-);
 
 const GoalSection = ({ goal }: { goal?: GoalSummary | null }) => {
   if (!goal) {
@@ -296,7 +275,7 @@ const MobileReportView = ({
     className="mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl bg-[#0b0d12] shadow-2xl"
     data-name="/report"
   >
-    <ReportHeader />
+    <MobileAppHeader />
 
     <main className="flex min-h-0 flex-1 flex-col gap-4 px-5 pb-4">
       <GoalSection goal={goal} />

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AppTabBar } from "@/components/AppTabBar";
+import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import type { FitnessAppHomeProps, GoalSummary } from "../_types/home";
 
@@ -67,20 +68,6 @@ const ActionCard = ({
   </button>
 );
 
-const HeaderLogo = ({ badgeSize = "text-[9px]" }: { badgeSize?: string }) => (
-  <div className="flex items-center gap-2">
-    <div className="relative h-9 w-[84px] shrink-0">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
-    </div>
-    <span
-      className={`rounded bg-[#1856ed] px-1.5 py-0.5 font-[family-name:var(--font-urbanist)] font-bold text-[#0b0d12] ${badgeSize}`}
-    >
-      AI
-    </span>
-  </div>
-);
-
 const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
   <section className="flex w-full flex-col gap-2">
     <h2 className="text-xs font-bold text-[#9ca3af]">今日の目標</h2>
@@ -121,22 +108,7 @@ const MobileHomeView = ({ goal }: { goal?: GoalSummary | null }) => (
     data-name="/"
     data-node-id="165:520"
   >
-      <header className="flex w-full shrink-0 items-center justify-between px-5 py-4">
-        <HeaderLogo />
-        <Link
-          href="/mypage"
-          className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-          aria-label="マイページ"
-        >
-          <Image
-            src={assets.avatar}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="32px"
-          />
-        </Link>
-      </header>
+      <MobileAppHeader />
 
       <main className="flex h-[664px] w-full shrink-0 flex-col gap-4 overflow-y-auto px-5 pb-4">
         <ActionCard

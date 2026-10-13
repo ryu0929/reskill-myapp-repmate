@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
+import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/consult";
@@ -36,18 +36,6 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
   content: `こんにちは！今日は${exercise}について相談ですね。現在の記録と目標を教えてください。`,
   createdAt: new Date().toISOString(),
 });
-
-const HeaderLogo = () => (
-  <div className="flex items-center gap-2">
-    <div className="relative h-9 w-[84px] shrink-0">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
-    </div>
-    <span className="rounded bg-[#1856ed] px-1.5 py-0.5 font-[family-name:var(--font-urbanist)] text-[10px] font-extrabold text-[#0b0d12]">
-      AI
-    </span>
-  </div>
-);
 
 const ExerciseSelector = ({
   exercise,
@@ -283,16 +271,7 @@ const MobileConsultView = ({
     className="mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl border border-[#242c3b] bg-[#0b0d12] shadow-2xl"
     data-name="/consult"
   >
-    <header className="flex shrink-0 items-center justify-between px-5 py-4">
-      <HeaderLogo />
-      <Link
-        href="/mypage"
-        className="relative size-8 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-        aria-label="マイページ"
-      >
-        <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
-      </Link>
-    </header>
+    <MobileAppHeader />
 
     <div className="flex min-h-0 flex-1 flex-col gap-3 px-5 pb-3 pt-1">
       <ExerciseSelector
