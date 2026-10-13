@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
@@ -10,7 +11,7 @@ import { EXERCISES } from "../_types/consult";
 import type { ConsultScreenProps, ConsultViewProps, Exercise, GoalSummary } from "../_types/consult";
 
 const assets = {
-  avatar: "/assets/consult/avatar.png",
+  avatar: "/assets/avatarIcon.svg",
   aiAvatar: "/assets/consult/ai-avatar.png",
   aiAvatarAlt: "/assets/consult/ai-avatar-alt.png",
   logo: "/assets/repmate-logo.svg",
@@ -284,9 +285,13 @@ const MobileConsultView = ({
   >
     <header className="flex shrink-0 items-center justify-between px-5 py-4">
       <HeaderLogo />
-      <div className="relative size-8 overflow-hidden rounded-2xl">
+      <Link
+        href="/mypage"
+        className="relative size-8 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
+        aria-label="マイページ"
+      >
         <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
-      </div>
+      </Link>
     </header>
 
     <div className="flex min-h-0 flex-1 flex-col gap-3 px-5 pb-3 pt-1">

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import type { AppDesktopLayoutProps, DesktopHeaderProps, DesktopNavigationItem, DesktopNavItemProps, DesktopPageMeta, DesktopSidebarProps } from "@/components/_types/app-desktop-layout";
 
 const assets = {
-  avatar: "/assets/avatar.png",
+  avatar: "/assets/avatarIcon.svg",
   logo: "/assets/repmate-logo.svg",
   tabHome: "/assets/tab-home.svg",
   tabConsult: "/assets/tab-consult.svg",
@@ -92,7 +92,11 @@ const DesktopSidebar = ({ active, userName }: DesktopSidebarProps) => (
       </nav>
     </div>
 
-    <div className="flex items-center gap-3 rounded-lg bg-[#161c27] p-3">
+    <Link
+      href="/mypage"
+      className="flex items-center gap-3 rounded-lg bg-[#161c27] p-3 transition-opacity hover:opacity-90"
+      aria-label="マイページ"
+    >
       <div className="relative size-9 overflow-hidden rounded-full">
         <Image src={assets.avatar} alt="" fill className="object-cover" sizes="36px" />
       </div>
@@ -100,7 +104,7 @@ const DesktopSidebar = ({ active, userName }: DesktopSidebarProps) => (
         <p className="max-w-[11em] truncate text-[13px] font-bold text-[#f8fafc]">{userName}</p>
         <p className="text-[11px] text-[#98a2b3]">トレーニング中</p>
       </div>
-    </div>
+    </Link>
   </aside>
 );
 
@@ -131,13 +135,13 @@ const DesktopHeader = ({
       >
         <span className="text-lg leading-none">!</span>
       </button>
-      <button
-        type="button"
+      <Link
+        href="/mypage"
         className="relative size-10 overflow-hidden rounded-full transition-opacity hover:opacity-90"
-        aria-label="プロフィール"
+        aria-label="マイページ"
       >
         <Image src={assets.avatar} alt="" fill className="object-cover" sizes="40px" />
-      </button>
+      </Link>
     </div>
   </header>
 );

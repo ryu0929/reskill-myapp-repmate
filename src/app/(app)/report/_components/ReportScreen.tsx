@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
@@ -11,7 +12,7 @@ import type { Exercise, GoalSummary, ReportScreenProps, ReportViewProps } from "
 
 
 const assets = {
-  avatar: "/assets/consult/avatar.png",
+  avatar: "/assets/avatarIcon.svg",
   aiAvatar: "/assets/consult/ai-avatar.png",
   logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
@@ -46,13 +47,13 @@ const ReportHeader = () => (
         AI
       </span>
     </div>
-    <button
-      type="button"
+    <Link
+      href="/mypage"
       className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-      aria-label="プロフィール"
+      aria-label="マイページ"
     >
       <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
-    </button>
+    </Link>
   </header>
 );
 

@@ -5,7 +5,7 @@ import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import type { FitnessAppHomeProps, GoalSummary } from "../_types/home";
 
 const assets = {
-  avatar: "/assets/avatar.png",
+  avatar: "/assets/avatarIcon.svg",
   avatarFrame: "/assets/avatar-frame.png",
   lineGrid: "/assets/line-grid.png",
   logo: "/assets/repmate-logo.svg",
@@ -123,10 +123,10 @@ const MobileHomeView = ({ goal }: { goal?: GoalSummary | null }) => (
   >
       <header className="flex w-full shrink-0 items-center justify-between px-5 py-4">
         <HeaderLogo />
-        <button
-          type="button"
+        <Link
+          href="/mypage"
           className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-          aria-label="プロフィール"
+          aria-label="マイページ"
         >
           <Image
             src={assets.avatar}
@@ -135,7 +135,7 @@ const MobileHomeView = ({ goal }: { goal?: GoalSummary | null }) => (
             className="object-cover"
             sizes="32px"
           />
-        </button>
+        </Link>
       </header>
 
       <main className="flex h-[664px] w-full shrink-0 flex-col gap-4 overflow-y-auto px-5 pb-4">

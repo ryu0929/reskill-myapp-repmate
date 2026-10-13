@@ -1,8 +1,14 @@
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
 import type { MypageScreenProps, ProfileDetail, UserProfile } from "../_types/mypage";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const assets = {
-  avatar: "/assets/avatar.png",
+  avatar: "/assets/avatarIcon.svg",
   logo: "/assets/repmate-logo.svg",
 } as const;
 
@@ -25,13 +31,13 @@ const Header = () => (
           <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
         </div>
       </div>
-      <button
-        type="button"
+      <Link
+        href="/mypage"
         className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-        aria-label="プロフィール"
+        aria-label="マイページ"
       >
         <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
-      </button>
+      </Link>
     </div>
   </header>
 );
@@ -82,14 +88,39 @@ const AccountSettings = ({ details }: { details: ProfileDetail[] }) => (
   </section>
 );
 
-const LogoutButton = () => (
-  <button
-    type="button"
-    className="flex w-full items-center justify-center rounded-[14px] border border-[#242c3b] py-[13px] text-[13px] font-semibold text-[#9ca3af] transition-colors hover:border-[#384255] hover:text-[#f9fafb] min-[769px]:border-[#273142] min-[769px]:bg-[#141822] min-[769px]:py-3.5 min-[769px]:text-sm"
-  >
-    ログアウト
-  </button>
-);
+const LogoutButton = () => {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("ログアウトに失敗しました", error.message);
+      setIsLoggingOut(false);
+      return;
+    }
+
+    router.replace("/login");
+    router.refresh();
+  }
+
+  return (
+    <button
+        type="button"
+        className="flex w-full items-center justify-center rounded-[14px] border border-[#242c3b] py-[13px] text-[13px] font-semibold text-[#9ca3af] transition-colors hover:border-[#384255] hover:text-[#f9fafb] min-[769px]:border-[#273142] min-[769px]:bg-[#141822] min-[769px]:py-3.5 min-[769px]:text-sm"
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+      >
+        {isLoggingOut ? "ログアウト中..." : "ログアウト"}
+      </button>
+  );
+};
 
 const MypageScreen = ({ user = defaultUser }: MypageScreenProps) => {
   const details: ProfileDetail[] = [
