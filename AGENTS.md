@@ -1,9 +1,19 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# RepMate 開発ルール
 
-# This is NOT the Next.js you know
+## TypeScript
+- コンポーネントのPropsや共通で使用する型定義は、原則として別ファイルに分離する。
+- 型定義ファイルは既存のディレクトリ構成・命名規則に合わせる。
+- コンポーネント内でのみ使用する簡単な型まで、無理に分離する必要はない。
+- `any` 型は原則使用しない。
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+## 実装方針
+- 既存のコードやディレクトリ構成を尊重する。
+- 指示していないデザインや機能は変更しない。
+- 不要なリファクタリングは行わない。
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+## 実装後の説明
+- 実装完了後は、何を変更したのかを日本語で説明する。
+- 変更したファイルと、それぞれの変更理由を説明する。
+- 新しく使用したReact Hooks、TypeScriptの型、JavaScriptの構文について、初学者にも分かるように説明する。
+- 処理の流れが複雑な場合は、コードの実行順序も説明する。
+- 説明は簡潔にしつつ、実装を理解するために重要な部分は省略しない。

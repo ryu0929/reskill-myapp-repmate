@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes } from "react";
 
-export const genderOptions = ["男性", "女性", "その他"] as const;
+export const genderOptions = ["男性", "女性", "無回答"] as const;
 
 export type Gender = (typeof genderOptions)[number];
 
