@@ -1,12 +1,24 @@
-export type ProfileDetail = {
+import type { ReactNode } from "react";
+
+export const genderOptions = ["男性", "女性", "無回答"] as const;
+
+export type Gender = (typeof genderOptions)[number];
+
+export type ProfileFieldProps = {
+  id: string;
   label: string;
   value: string;
-  action: string;
+  editing: boolean;
+  children: ReactNode;
+};
+
+export type ProfileSummaryProps = {
+  user: UserProfile;
 };
 
 export type UserProfile = {
   name: string;
-  gender: string;
+  gender: Gender;
   email: string;
   trainingHistory: string;
   streakLabel: string;
@@ -14,5 +26,5 @@ export type UserProfile = {
 };
 
 export type MypageScreenProps = {
-  user?: UserProfile;
+  user: UserProfile;
 };
