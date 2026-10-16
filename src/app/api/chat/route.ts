@@ -1,76 +1,104 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import type { ChatApiMessage } from "@/lib/chat-types";
-import type { ChatRequestBody } from "./_types/chat";
+import type { ChatRequestBody, GeminiResponseBody } from "./_types/chat";
 
 const SYSTEM_PROMPT = `あなたはフィットネスアプリ「RepMate」のAIトレーナーです。
 ユーザーとの相談では、安全で実行可能なトレーニング提案を日本語で簡潔に返してください。
 医学的診断はせず、痛みや異常がある場合は専門家への相談を促してください。`;
 
 
-const fallbackReply = (exercise: string, latestUserMessage: string): string => {
-  const snippet =
-    latestUserMessage.length > 40
-      ? `${latestUserMessage.slice(0, 40)}…`
-      : latestUserMessage;
+const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
+  if (!value || typeof value !== "object") return false;
 
-  return `${exercise}について「${snippet}」ですね。週2〜3回のペースで、重量・レップ数・セット数を段階的に上げるプランがおすすめです。今の最大重量と目標を教えてください。`;
+  const body = value as Record<string, unknown>;
+  if (body.exercise !== undefined && typeof body.exercise !== "string") {
+    return false;
+  }
+
+  return (
+    Array.isArray(body.messages) &&
+    body.messages.every(
+      (message) =>
+        !!message &&
+        typeof message === "object" &&
+        (message.role === "user" || message.role === "assistant") &&
+        typeof message.content === "string",
+    )
+  );
 };
 
-const replyWithOpenAI = async (
+const getOutputText = (data: GeminiResponseBody): string =>
+  data.candidates
+    ?.flatMap((candidate) => candidate.content?.parts ?? [])
+    .map((part) => part.text ?? "")
+    .join("")
+    .trim() ?? "";
+
+const replyWithGemini = async (
   exercise: string,
   messages: ChatApiMessage[],
 ): Promise<string> => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not set");
+    throw new Error("GEMINI_API_KEY is not set");
   }
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      temperature: 0.7,
-      messages: [
-        {
-          role: "system",
-          content: `${SYSTEM_PROMPT}\n現在の種目: ${exercise}`,
+  const model = process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: `${SYSTEM_PROMPT}\n現在の種目: ${exercise}` }],
         },
-        ...messages.map((message) => ({
-          role: message.role,
-          content: message.content,
+        contents: messages.map((message) => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }],
         })),
-      ],
-    }),
-  });
+      }),
+    },
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
+    throw new Error(`Gemini API error: ${response.status} ${errorText}`);
   }
 
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-
-  const content = data.choices?.[0]?.message?.content?.trim();
+  const data = (await response.json()) as GeminiResponseBody;
+  const content = getOutputText(data);
   if (!content) {
-    throw new Error("Empty response from OpenAI");
+    throw new Error("Empty response from Gemini");
   }
 
   return content;
 };
 
 export const POST = async (request: Request) => {
-  let body: ChatRequestBody;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+  }
+
+  let body: unknown;
 
   try {
-    body = (await request.json()) as ChatRequestBody;
+    body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  if (!isChatRequestBody(body)) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
   const exercise = body.exercise?.trim() || "ベンチプレス";
@@ -80,8 +108,7 @@ export const POST = async (request: Request) => {
     return NextResponse.json({ error: "messages is required" }, { status: 400 });
   }
 
-  const latestUser = [...messages].reverse().find((m) => m.role === "user");
-  if (!latestUser) {
+  if (!messages.some((message) => message.role === "user")) {
     return NextResponse.json(
       { error: "At least one user message is required" },
       { status: 400 },
@@ -89,13 +116,13 @@ export const POST = async (request: Request) => {
   }
 
   try {
-    const reply = await replyWithOpenAI(exercise, messages);
-    return NextResponse.json({ reply, provider: "openai" as const });
+    const reply = await replyWithGemini(exercise, messages);
+    return NextResponse.json({ reply, provider: "gemini" as const });
   } catch (error) {
     console.error("[chat]", error);
-    return NextResponse.json({
-      reply: fallbackReply(exercise, latestUser.content),
-      provider: "fallback" as const,
-    });
+    return NextResponse.json(
+      { error: "AIからの応答を取得できませんでした" },
+      { status: 502 },
+    );
   }
 };

@@ -9,10 +9,6 @@ export const profileSchema = z.object({
 
     gender: z.enum(genderOptions),
 
-    email: z.email(
-       "正しいメールアドレスを入力してください"
-    ),
-
     password: z.string().refine(
         (value) => value === "" || value.length >= 8,
         "パスワードは8文字以上で入力してください"

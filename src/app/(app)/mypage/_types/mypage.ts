@@ -9,7 +9,7 @@ export type ProfileFieldProps = {
   label: string;
   value: string;
   editing: boolean;
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 export type ProfileSummaryProps = {

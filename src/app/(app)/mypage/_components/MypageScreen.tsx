@@ -92,7 +92,6 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
     defaultValues: {
       name: user.name,
       gender: user.gender,
-      email: user.email,
       password: "",
       confirmation: "",
     },
@@ -128,7 +127,6 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
         reset({
           name: result.profile.name,
           gender: result.profile.gender,
-          email: profile.email,
           password: "",
           confirmation: "",
         });
@@ -240,23 +238,8 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
                 id="profile-email"
                 label="メールアドレス"
                 value={profile.email}
-                editing={editing}
-              >
-                <input
-                  {...register("email")}
-                  id="profile-email"
-                  type="email"
-                  autoComplete="email"
-                  aria-invalid={!!errors.email}
-                  aria-describedby={errors.email ? "email-error" : undefined}
-                  className={inputClassName}
-                />
-                {errors.email && <p
-                  id="email-error"
-                  role="alert"
-                  className="mt-2 text-xs text-red-400"
-                >{errors.email.message}</p>}
-              </ProfileField>
+                editing={false}
+              />
               <ProfileField
                 id="profile-password"
                 label={editing ? "新しいパスワード" : "パスワード"}
@@ -312,7 +295,7 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
               onClick={(event) => {
               if (editing) return;
               event.preventDefault();
-              reset({ name: profile.name, gender: profile.gender, email: profile.email, password: "", confirmation: "" });
+              reset({ name: profile.name, gender: profile.gender, password: "", confirmation: "" });
               setNotice("");
               setEditing(true);
             }}
