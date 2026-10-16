@@ -11,6 +11,7 @@ datasource db {
 model Profile {
   id        String   @id @db.Uuid
   name      String   @db.VarChar(100)
+  gender    String   @default("無回答") @db.VarChar(20)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
