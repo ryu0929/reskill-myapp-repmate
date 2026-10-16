@@ -43,7 +43,22 @@ export const PATCH = async (request: Request) => {
     }
 
     //検証済みのデータを取り出す
-    const { name, gender} = result.data;
+    const { name, gender, password} = result.data;
+
+    if(password) {
+        const { error: passwordError } = await supabase.auth.updateUser({
+            password,
+        });
+
+        if(passwordError) {
+            console.error("パスワード変更エラー:", passwordError.message);
+
+            return NextResponse.json(
+                { error: "パスワードの変更に失敗しました。再認証が必要な場合があります。" },
+                { status: 400 }
+            );
+        }
+    }
 
     try {
         //prismaでプロフィールを更新、作成
@@ -64,11 +79,12 @@ export const PATCH = async (request: Request) => {
 
         //更新結果を返す
         return NextResponse.json({
-            message: "名前と性別を保存しました",
+            message: "プロフィールを保存しました",
             profile: {
                 name: profile.name,
                 gender: profile.gender,
             },
+            passwordUpdated: Boolean(password),
         });
     } catch(error) {
         console.error("プロフィール更新エラー:", error);
