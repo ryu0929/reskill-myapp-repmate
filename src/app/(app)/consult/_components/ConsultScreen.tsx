@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
@@ -8,7 +9,13 @@ import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/consult";
-import type { ConsultScreenProps, ConsultViewProps, Exercise, GoalSummary } from "../_types/consult";
+import type {
+  ConsultScreenProps,
+  ConsultViewProps,
+  Exercise,
+  GoalProposal,
+  GoalSummary,
+} from "../_types/consult";
 
 const assets = {
   avatar: "/assets/avatarIcon.svg",
@@ -213,45 +220,167 @@ const ChatInput = ({
   </form>
 );
 
-const GoalPanel = ({ goal = null }: { goal?: GoalSummary | null }) => (
-  <aside className="flex h-full w-[380px] shrink-0 flex-col gap-5 border-l border-[#273142] bg-[#111620] p-6">
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="text-lg font-bold text-[#f8fafc]">今日の目標</h2>
+const GoalProposalCard = ({
+  proposal,
+  selected,
+  onSelect,
+}: {
+  proposal: GoalProposal;
+  selected: boolean;
+  onSelect: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onSelect}
+    aria-pressed={selected}
+    className={`w-full rounded-lg border p-4 text-left transition-[border-color,background-color,transform] duration-200 ${
+      selected
+        ? "scale-[1.01] border-[#2463eb] bg-[#17213a]"
+        : "border-[#273142] bg-[#141822] hover:border-[#384866]"
+    }`}
+  >
+    <span className="flex items-start gap-2">
       <span
-        className={`rounded-md px-2 py-1 text-[11px] font-bold ${
-          goal ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]" : "bg-[rgba(152,162,179,0.13)] text-[#98a2b3]"
+        className={`mt-1 size-2 shrink-0 rounded-full transition-colors ${
+          selected ? "bg-[#2463eb]" : "bg-[#667085]"
         }`}
-      >
-        {goal?.statusLabel ?? "未設定"}
+        aria-hidden
+      />
+      <span className="min-w-0">
+        <span className="block text-sm font-bold text-[#f8fafc]">{proposal.title}</span>
+        <span className="mt-2 block text-[13px] leading-[1.5] text-[#98a2b3]">
+          {proposal.description}
+        </span>
       </span>
-    </div>
+    </span>
+  </button>
+);
 
-    {goal ? (
-      <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-[#1856ed]" aria-hidden />
-          <p className="text-sm font-bold text-[#f8fafc]">{goal.name}</p>
-        </div>
-        <p className="text-[13px] leading-[1.4] text-[#98a2b3]">{goal.description}</p>
-      </div>
-    ) : (
-      <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
-        <p className="text-[13px] leading-[1.5] text-[#98a2b3]">
-          目標はまだ設定されていません。ワークアウトの計画を作成しましょう。
-        </p>
-      </div>
-    )}
+const GoalComposerContent = ({
+  goal,
+  proposals,
+  selectedProposalId,
+  isGeneratingGoals,
+  isSavingGoal,
+  isChangingGoal,
+  canGenerateGoals,
+  onGenerateGoals,
+  onSelectGoal,
+  onSaveGoal,
+  onChangeGoal,
+}: Pick<
+  ConsultViewProps,
+  | "goal"
+  | "proposals"
+  | "selectedProposalId"
+  | "isGeneratingGoals"
+  | "isSavingGoal"
+  | "isChangingGoal"
+  | "canGenerateGoals"
+  | "onGenerateGoals"
+  | "onSelectGoal"
+  | "onSaveGoal"
+  | "onChangeGoal"
+>) => {
+  const hasProposals = proposals.length > 0;
 
-    <button
-      type="button"
-      className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2463eb] p-3.5 text-sm font-bold text-[#f8fafc] transition-opacity hover:opacity-95"
-    >
-      {!goal && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img alt="" className="size-4" src={assets.plusCircle} />
+  return (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-bold text-[#f8fafc]">今日の目標</h2>
+        <span
+          className={`rounded-md px-2 py-1 text-[11px] font-bold ${
+            hasProposals || isGeneratingGoals
+              ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]"
+              : goal
+                ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]"
+                : "bg-[rgba(152,162,179,0.13)] text-[#98a2b3]"
+          }`}
+        >
+          {hasProposals || isGeneratingGoals
+            ? isChangingGoal
+              ? "変更中"
+              : "作成中"
+            : goal?.statusLabel ?? "未設定"}
+        </span>
+      </div>
+
+      <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
+        {isGeneratingGoals && (
+          <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
+            <p className="animate-pulse text-[13px] text-[#98a2b3]">会話から目標を考えています…</p>
+          </div>
+        )}
+
+        {!isGeneratingGoals && hasProposals && proposals.map((proposal) => (
+          <GoalProposalCard
+            key={proposal.id}
+            proposal={proposal}
+            selected={selectedProposalId === proposal.id}
+            onSelect={() => onSelectGoal(proposal.id)}
+          />
+        ))}
+
+        {!isGeneratingGoals && !hasProposals && goal && (
+          <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
+            <div className="flex items-center gap-2">
+              <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
+              <p className="text-sm font-bold text-[#f8fafc]">{goal.name}</p>
+            </div>
+            <p className="text-[13px] leading-[1.4] text-[#98a2b3]">{goal.description}</p>
+          </div>
+        )}
+
+        {!isGeneratingGoals && !hasProposals && !goal && (
+          <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
+            <p className="text-[13px] leading-[1.5] text-[#98a2b3]">
+              目標はまだ設定されていません。AIと相談してワークアウトの計画を作成しましょう。
+            </p>
+          </div>
+        )}
+      </div>
+
+      {hasProposals ? (
+        <button
+          type="button"
+          onClick={onSaveGoal}
+          disabled={!selectedProposalId || isSavingGoal}
+          className="flex w-full items-center justify-center rounded-lg bg-[#2463eb] p-3.5 text-sm font-bold text-[#f8fafc] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isSavingGoal
+            ? "保存中…"
+            : isChangingGoal
+              ? "変更を保存する"
+              : "目標を設定する"}
+        </button>
+      ) : goal ? (
+        <button
+          type="button"
+          onClick={onChangeGoal}
+          disabled={isGeneratingGoals}
+          className="flex w-full items-center justify-center rounded-lg border border-[#2463eb] p-3.5 text-sm font-bold text-[#5b8cff] transition-colors hover:bg-[#17213a] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isGeneratingGoals ? "候補を読み込み中…" : "目標を変更する"}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onGenerateGoals}
+          disabled={!canGenerateGoals || isGeneratingGoals}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2463eb] p-3.5 text-sm font-bold text-[#f8fafc] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt="" className="size-4" src={assets.plusCircle} />
+          <span>{canGenerateGoals ? "今日の目標を決める" : "AIと1往復以上相談してください"}</span>
+        </button>
       )}
-      <span>{goal ? "目標を設定する" : "今日の目標を決める"}</span>
-    </button>
+    </>
+  );
+};
+
+const GoalPanel = (props: ConsultViewProps) => (
+  <aside className="flex h-full w-[380px] shrink-0 flex-col gap-5 border-l border-[#273142] bg-[#111620] p-6">
+    <GoalComposerContent {...props} />
   </aside>
 );
 
@@ -261,14 +390,27 @@ const MobileConsultView = ({
   input,
   isSending,
   showExercisePicker,
+  goal,
+  proposals,
+  selectedProposalId,
+  isGeneratingGoals,
+  isSavingGoal,
+  isChangingGoal,
+  isGoalComposerOpen,
+  canGenerateGoals,
   chatEndRef,
   onExerciseToggle,
   onExerciseChange,
   onInputChange,
   onSubmit,
+  onGenerateGoals,
+  onSelectGoal,
+  onSaveGoal,
+  onChangeGoal,
+  onCloseGoalComposer,
 }: ConsultViewProps) => (
   <div
-    className="mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl border border-[#242c3b] bg-[#0b0d12] shadow-2xl"
+    className="relative mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl border border-[#242c3b] bg-[#0b0d12] shadow-2xl"
     data-name="/consult"
   >
     <MobileAppHeader />
@@ -284,13 +426,62 @@ const MobileConsultView = ({
       <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
       <button
         type="button"
-        className="flex shrink-0 items-center justify-center gap-2 rounded-[10px] bg-gradient-to-r from-[#2a52a0] to-[#1e418c] p-3.5 shadow-[0px_4px_6px_rgba(24,86,237,0.2)]"
+        onClick={goal ? onChangeGoal : onGenerateGoals}
+        disabled={goal ? isGeneratingGoals : !canGenerateGoals || isGeneratingGoals}
+        className="flex shrink-0 items-center justify-center gap-2 rounded-[10px] bg-gradient-to-r from-[#2a52a0] to-[#1e418c] p-3.5 shadow-[0px_4px_6px_rgba(24,86,237,0.2)] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img alt="" className="size-3.5" src={assets.plusCircle} />
-        <span className="text-[15px] font-bold text-white">今日の目標を決める</span>
+        <span className="text-[15px] font-bold text-white">
+          {isGeneratingGoals
+            ? "候補を読み込み中…"
+            : goal
+              ? "目標を変更する"
+              : canGenerateGoals
+                ? "今日の目標を決める"
+                : "AIと1往復以上相談してください"}
+        </span>
       </button>
     </div>
+
+    <div
+      className={`absolute inset-0 z-20 bg-black/40 transition-opacity duration-200 ${
+        isGoalComposerOpen ? "opacity-100" : "pointer-events-none opacity-0"
+      }`}
+      onClick={onCloseGoalComposer}
+      aria-hidden
+    />
+    <aside
+      aria-label="今日の目標候補"
+      className={`absolute inset-x-0 bottom-20 z-30 flex max-h-[72%] flex-col gap-4 rounded-t-2xl border-t border-[#242c3b] bg-gradient-to-r from-[#1a2744] to-[#0f1520] px-5 pb-5 pt-2 transition-transform duration-200 ease-out ${
+        isGoalComposerOpen ? "translate-y-0" : "translate-y-[110%]"
+      }`}
+    >
+      <div className="relative flex justify-center">
+        <span className="h-1 w-10 rounded-full bg-[#384255]" aria-hidden />
+        <button
+          type="button"
+          onClick={onCloseGoalComposer}
+          className="absolute right-0 top-0 flex size-7 items-center justify-center text-lg text-[#98a2b3]"
+          aria-label="目標候補を閉じる"
+        >
+          ×
+        </button>
+      </div>
+      <GoalComposerContent
+        goal={goal}
+        proposals={proposals}
+        selectedProposalId={selectedProposalId}
+        isGeneratingGoals={isGeneratingGoals}
+        isSavingGoal={isSavingGoal}
+        isChangingGoal={isChangingGoal}
+        canGenerateGoals={canGenerateGoals}
+        onGenerateGoals={onGenerateGoals}
+        onSelectGoal={onSelectGoal}
+        onSaveGoal={onSaveGoal}
+        onChangeGoal={onChangeGoal}
+      />
+    </aside>
 
     <AppTabBar active="consult" variant="consult" />
   </div>
@@ -304,10 +495,22 @@ const DesktopConsultView = ({
   showExercisePicker,
   chatEndRef,
   goal,
+  proposals,
+  selectedProposalId,
+  isGeneratingGoals,
+  isSavingGoal,
+  isChangingGoal,
+  isGoalComposerOpen,
+  canGenerateGoals,
   onExerciseToggle,
   onExerciseChange,
   onInputChange,
   onSubmit,
+  onGenerateGoals,
+  onSelectGoal,
+  onSaveGoal,
+  onChangeGoal,
+  onCloseGoalComposer,
 }: ConsultViewProps) => (
   <main className="flex min-h-0 flex-1">
       <section className="flex min-w-0 flex-1 flex-col justify-between px-10 py-6">
@@ -323,16 +526,50 @@ const DesktopConsultView = ({
         </div>
         <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
       </section>
-      <GoalPanel goal={goal} />
+      <GoalPanel
+        exercise={exercise}
+        messages={messages}
+        input={input}
+        isSending={isSending}
+        showExercisePicker={showExercisePicker}
+        chatEndRef={chatEndRef}
+        goal={goal}
+        proposals={proposals}
+        selectedProposalId={selectedProposalId}
+        isGeneratingGoals={isGeneratingGoals}
+        isSavingGoal={isSavingGoal}
+        isChangingGoal={isChangingGoal}
+        isGoalComposerOpen={isGoalComposerOpen}
+        canGenerateGoals={canGenerateGoals}
+        onExerciseToggle={onExerciseToggle}
+        onExerciseChange={onExerciseChange}
+        onInputChange={onInputChange}
+        onSubmit={onSubmit}
+        onGenerateGoals={onGenerateGoals}
+        onSelectGoal={onSelectGoal}
+        onSaveGoal={onSaveGoal}
+        onChangeGoal={onChangeGoal}
+        onCloseGoalComposer={onCloseGoalComposer}
+      />
     </main>
 );
 
 export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => {
+  const router = useRouter();
   const [exercise, setExercise] = useState<Exercise>("ベンチプレス");
   const [messages, setMessages] = useState<ChatMessage[]>(() => [welcomeMessage("ベンチプレス")]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const [activeGoal, setActiveGoal] = useState<GoalSummary | null>(goal);
+  const [proposals, setProposals] = useState<GoalProposal[]>([]);
+  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+  const [isGeneratingGoals, setIsGeneratingGoals] = useState(false);
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
+  const [isChangingGoal, setIsChangingGoal] = useState(false);
+  const [isGoalComposerOpen, setIsGoalComposerOpen] = useState(false);
+  const [completedTurns, setCompletedTurns] = useState(0);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const mobileChatEndRef = useRef<HTMLDivElement>(null);
   const desktopChatEndRef = useRef<HTMLDivElement>(null);
 
@@ -345,6 +582,13 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     mobileChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     desktopChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isSending]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+
+    const timeoutId = window.setTimeout(() => setToastMessage(null), 3000);
+    return () => window.clearTimeout(timeoutId);
+  }, [toastMessage]);
 
   const sendMessage = async (event?: FormEvent) => {
     event?.preventDefault();
@@ -384,6 +628,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
         createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
+      setCompletedTurns((turns) => turns + 1);
     } catch {
       const assistantMessage: ChatMessage = {
         id: createId(),
@@ -403,26 +648,183 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     setShowExercisePicker(false);
     setMessages([welcomeMessage(next)]);
     setInput("");
+    setProposals([]);
+    setSelectedProposalId(null);
+    setIsChangingGoal(false);
+    setIsGoalComposerOpen(false);
+    setCompletedTurns(0);
   };
 
-  const viewProps = {
+  const generateGoals = async () => {
+    if (completedTurns < 1 || isGeneratingGoals) return;
+
+    setIsGoalComposerOpen(true);
+    setIsGeneratingGoals(true);
+    setProposals([]);
+    setSelectedProposalId(null);
+    setIsChangingGoal(false);
+
+    try {
+      const response = await fetch("/api/goals/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ exercise, messages: apiMessages }),
+      });
+      const data = (await response.json()) as {
+        proposals?: GoalProposal[];
+        error?: string;
+      };
+
+      if (!response.ok || !data.proposals) {
+        throw new Error(data.error ?? "目標候補を作成できませんでした");
+      }
+
+      setProposals(data.proposals);
+    } catch (error) {
+      setToastMessage(
+        error instanceof Error ? error.message : "目標候補を作成できませんでした",
+      );
+    } finally {
+      setIsGeneratingGoals(false);
+    }
+  };
+
+  const changeGoal = async () => {
+    if (!activeGoal || isGeneratingGoals) return;
+
+    setIsGoalComposerOpen(true);
+    setIsGeneratingGoals(true);
+    setIsChangingGoal(true);
+
+    try {
+      const response = await fetch(`/api/goals/${activeGoal.id}`);
+      const data = (await response.json()) as {
+        proposals?: Array<GoalProposal & { isSelected: boolean }>;
+        error?: string;
+      };
+
+      if (!response.ok || !data.proposals) {
+        throw new Error(data.error ?? "保存済みの目標候補を取得できませんでした");
+      }
+
+      setProposals(data.proposals);
+      setSelectedProposalId(
+        data.proposals.find(({ isSelected }) => isSelected)?.id ?? null,
+      );
+    } catch (error) {
+      setIsChangingGoal(false);
+      setToastMessage(
+        error instanceof Error ? error.message : "保存済みの目標候補を取得できませんでした",
+      );
+    } finally {
+      setIsGeneratingGoals(false);
+    }
+  };
+
+  const saveGoal = async () => {
+    const selectedGoal = proposals.find(({ id }) => id === selectedProposalId);
+    if (!selectedGoal || isSavingGoal) return;
+
+    setIsSavingGoal(true);
+
+    try {
+      const response = await fetch(
+        isChangingGoal && activeGoal ? `/api/goals/${activeGoal.id}` : "/api/goals",
+        {
+          method: isChangingGoal ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            isChangingGoal
+              ? { proposalId: selectedGoal.id }
+              : {
+                  exercise,
+                  proposals,
+                  selectedProposalId: selectedGoal.id,
+                  messages: apiMessages,
+                },
+          ),
+        },
+      );
+      const data = (await response.json()) as {
+        goal?: {
+          id: string;
+          title: string;
+          description: string;
+          statusLabel: string;
+        };
+        error?: string;
+      };
+
+      if (!response.ok || !data.goal) {
+        throw new Error(data.error ?? "目標を保存できませんでした");
+      }
+
+      const successMessage = isChangingGoal ? "目標を変更しました" : "目標を設定しました";
+
+      setActiveGoal({
+        id: data.goal.id,
+        name: data.goal.title,
+        statusLabel: data.goal.statusLabel,
+        description: data.goal.description,
+      });
+      setProposals([]);
+      setSelectedProposalId(null);
+      setIsChangingGoal(false);
+      setIsGoalComposerOpen(false);
+      setToastMessage(successMessage);
+      router.refresh();
+    } catch (error) {
+      setToastMessage(error instanceof Error ? error.message : "目標を保存できませんでした");
+    } finally {
+      setIsSavingGoal(false);
+    }
+  };
+
+  const canGenerateGoals = completedTurns >= 1 && !isSending;
+
+  const viewProps: Omit<ConsultViewProps, "chatEndRef"> = {
     exercise,
     messages,
     input,
     isSending,
     showExercisePicker,
-    goal,
+    goal: activeGoal,
+    proposals,
+    selectedProposalId,
+    isGeneratingGoals,
+    isSavingGoal,
+    isChangingGoal,
+    isGoalComposerOpen,
+    canGenerateGoals,
     onExerciseToggle: () => setShowExercisePicker((open) => !open),
     onExerciseChange: handleExerciseChange,
     onInputChange: setInput,
     onSubmit: sendMessage,
+    onGenerateGoals: generateGoals,
+    onSelectGoal: setSelectedProposalId,
+    onSaveGoal: saveGoal,
+    onChangeGoal: changeGoal,
+    onCloseGoalComposer: () => setIsGoalComposerOpen(false),
   };
 
   return (
-    <ResponsiveScreen
-    userName={userName}
-      mobile={<MobileConsultView {...viewProps} chatEndRef={mobileChatEndRef} />}
-      desktop={<DesktopConsultView {...viewProps} chatEndRef={desktopChatEndRef} />}
-    />
+    <>
+      <ResponsiveScreen
+        userName={userName}
+        mobile={<MobileConsultView {...viewProps} chatEndRef={mobileChatEndRef} />}
+        desktop={<DesktopConsultView {...viewProps} chatEndRef={desktopChatEndRef} />}
+      />
+      <div
+        role="status"
+        aria-live="polite"
+        className={`fixed bottom-6 left-1/2 z-50 max-w-[calc(100%-32px)] -translate-x-1/2 rounded-lg border border-[#273142] bg-[#17213a] px-5 py-3 text-center text-sm font-bold text-[#f8fafc] shadow-xl transition-all duration-200 ${
+          toastMessage
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-2 opacity-0"
+        }`}
+      >
+        {toastMessage}
+      </div>
+    </>
   );
 };

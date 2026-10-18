@@ -7,6 +7,10 @@ const SYSTEM_PROMPT = `あなたはフィットネスアプリ「RepMate」のAI
 ユーザーとの相談では、安全で実行可能なトレーニング提案を日本語で簡潔に返してください。
 医学的診断はせず、痛みや異常がある場合は専門家への相談を促してください。`;
 
+const createMockReply = (exercise: string) => (
+  `${exercise}ですね。現在の体調を優先しながら、無理のない重量でフォームを確認しましょう。` +
+  "今日は回数とセット数を具体的に決めると、取り組みやすい目標になります。"
+);
 
 const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
   if (!value || typeof value !== "object") return false;
@@ -116,6 +120,13 @@ export const POST = async (request: Request) => {
   }
 
   try {
+    if (process.env.USE_MOCK_AI !== "false") {
+      return NextResponse.json({
+        reply: createMockReply(exercise),
+        provider: "mock" as const,
+      });
+    }
+
     const reply = await replyWithGemini(exercise, messages);
     return NextResponse.json({ reply, provider: "gemini" as const });
   } catch (error) {

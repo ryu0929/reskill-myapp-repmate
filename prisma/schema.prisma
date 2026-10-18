@@ -49,11 +49,27 @@ model Consultation {
   user          Profile               @relation(fields: [userId], references: [id])
   exercise      Exercise              @relation(fields: [exerciseId], references: [id])
   messages      ConsultationMessage[]
+  goalProposals GoalProposal[]
   trainingGoals TrainingGoal[]
 
   @@index([userId])
   @@index([exerciseId])
   @@map("consultations")
+}
+
+model GoalProposal {
+  id             String   @id @default(uuid()) @db.Uuid
+  consultationId String   @map("consultation_id") @db.Uuid
+  title          String   @db.VarChar(100)
+  description    String   @db.Text
+  isSelected     Boolean  @default(false) @map("is_selected")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  consultation Consultation @relation(fields: [consultationId], references: [id])
+
+  @@index([consultationId])
+  @@map("goal_proposals")
 }
 
 model ConsultationMessage {

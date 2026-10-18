@@ -6,8 +6,15 @@ export const EXERCISES = ["ベンチプレス", "スクワット", "デッドリ
 export type Exercise = (typeof EXERCISES)[number];
 
 export type GoalSummary = {
+  id: string;
   name: string;
   statusLabel: string;
+  description: string;
+};
+
+export type GoalProposal = {
+  id: string;
+  title: string;
   description: string;
 };
 
@@ -24,8 +31,20 @@ export type ConsultViewProps = {
   showExercisePicker: boolean;
   chatEndRef: RefObject<HTMLDivElement | null>;
   goal?: GoalSummary | null;
+  proposals: GoalProposal[];
+  selectedProposalId: string | null;
+  isGeneratingGoals: boolean;
+  isSavingGoal: boolean;
+  isChangingGoal: boolean;
+  isGoalComposerOpen: boolean;
+  canGenerateGoals: boolean;
   onExerciseToggle: () => void;
   onExerciseChange: (exercise: Exercise) => void;
   onInputChange: (value: string) => void;
   onSubmit: (event?: FormEvent) => void;
+  onGenerateGoals: () => void;
+  onSelectGoal: (proposalId: string) => void;
+  onSaveGoal: () => void;
+  onChangeGoal: () => void;
+  onCloseGoalComposer: () => void;
 };
