@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAppUser } from "@/components/AppUserProvider";
 import type { AppDesktopLayoutProps, DesktopHeaderProps, DesktopNavigationItem, DesktopNavItemProps, DesktopPageMeta, DesktopSidebarProps } from "@/components/_types/app-desktop-layout";
 
 const assets = {
@@ -24,7 +25,7 @@ const navigationItems: DesktopNavigationItem[] = [
 const desktopPageMeta: Record<string, DesktopPageMeta> = {
   "/": {
     active: "home",
-    title: "おかえりなさい、太郎さん",
+    title: "ホーム",
     subtitle: "今日も一歩ずつ、目標に近づきましょう。",
   },
   "/consult": {
@@ -46,8 +47,6 @@ const desktopPageMeta: Record<string, DesktopPageMeta> = {
 
 const getDesktopPageMeta = (pathname: string) =>
   desktopPageMeta[pathname] ?? desktopPageMeta["/"];
-
-const defaultUserName = "太郎";
 
 const HeaderLogo = () => (
   <div className="flex items-center gap-2">
@@ -148,10 +147,12 @@ const DesktopHeader = ({
 
 export const AppDesktopLayout = ({
   children,
-  userName = defaultUserName,
+  userName: userNameProp,
 }: AppDesktopLayoutProps) => {
   const pathname = usePathname();
   const meta = getDesktopPageMeta(pathname);
+  const { userName: contextUserName } = useAppUser();
+  const userName = userNameProp ?? contextUserName;
 
   return (
     <div className="flex min-h-[calc(100vh-32px)] w-full max-w-[1440px] overflow-hidden rounded-2xl bg-[#080b10] shadow-2xl">
