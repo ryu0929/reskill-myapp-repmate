@@ -7,9 +7,15 @@ const SYSTEM_PROMPT = `あなたはフィットネスアプリ「RepMate」のAI
 ユーザーとの相談では、安全で実行可能なトレーニング提案を日本語で簡潔に返してください。
 医学的診断はせず、痛みや異常がある場合は専門家への相談を促してください。`;
 
-const createMockReply = (exercise: string) => (
-  `${exercise}ですね。現在の体調を優先しながら、無理のない重量でフォームを確認しましょう。` +
-  "今日は回数とセット数を具体的に決めると、取り組みやすい目標になります。"
+const REPORT_SYSTEM_PROMPT = `あなたはフィットネスアプリ「RepMate」の記録アシスタントです。
+ユーザーが報告した重量・回数・セット数を簡潔に確認し、記録内容の確認を促してください。
+医学的診断はせず、痛みや異常がある場合は専門家への相談を促してください。`;
+
+const createMockReply = (exercise: string, mode: "consult" | "report") => (
+  mode === "report"
+    ? `${exercise}の内容を確認しました。表示された記録内容を確認して「記録する」を押してください。`
+    : `${exercise}ですね。現在の体調を優先しながら、無理のない重量でフォームを確認しましょう。` +
+      "今日は回数とセット数を具体的に決めると、取り組みやすい目標になります。"
 );
 
 const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
@@ -17,6 +23,9 @@ const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
 
   const body = value as Record<string, unknown>;
   if (body.exercise !== undefined && typeof body.exercise !== "string") {
+    return false;
+  }
+  if (body.mode !== undefined && body.mode !== "consult" && body.mode !== "report") {
     return false;
   }
 
@@ -42,6 +51,7 @@ const getOutputText = (data: GeminiResponseBody): string =>
 const replyWithGemini = async (
   exercise: string,
   messages: ChatApiMessage[],
+  mode: "consult" | "report",
 ): Promise<string> => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -59,7 +69,9 @@ const replyWithGemini = async (
       },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: `${SYSTEM_PROMPT}\n現在の種目: ${exercise}` }],
+          parts: [{
+            text: `${mode === "report" ? REPORT_SYSTEM_PROMPT : SYSTEM_PROMPT}\n現在の種目: ${exercise}`,
+          }],
         },
         contents: messages.map((message) => ({
           role: message.role === "assistant" ? "model" : "user",
@@ -106,6 +118,7 @@ export const POST = async (request: Request) => {
   }
 
   const exercise = body.exercise?.trim() || "ベンチプレス";
+  const mode = body.mode ?? "consult";
   const messages = body.messages?.filter((m) => m.content.trim()) ?? [];
 
   if (messages.length === 0) {
@@ -122,12 +135,12 @@ export const POST = async (request: Request) => {
   try {
     if (process.env.USE_MOCK_AI !== "false") {
       return NextResponse.json({
-        reply: createMockReply(exercise),
+        reply: createMockReply(exercise, mode),
         provider: "mock" as const,
       });
     }
 
-    const reply = await replyWithGemini(exercise, messages);
+    const reply = await replyWithGemini(exercise, messages, mode);
     return NextResponse.json({ reply, provider: "gemini" as const });
   } catch (error) {
     console.error("[chat]", error);

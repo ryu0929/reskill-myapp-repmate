@@ -3,22 +3,19 @@ import Link from "next/link";
 import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
-import type { FitnessAppHomeProps, GoalSummary } from "../_types/home";
+import type {
+  FitnessAppHomeProps,
+  GoalSummary,
+  GrowthReportSummary,
+} from "../_types/home";
 
 const assets = {
   avatar: "/assets/avatarIcon.svg",
   avatarFrame: "/assets/avatar-frame.png",
-  lineGrid: "/assets/line-grid.png",
   logo: "/assets/repmate-logo.svg",
   chevronRight: "/assets/chevron-right.svg",
   chevronRightGoal: "/assets/chevron-right-goal.svg",
   play: "/assets/play.svg",
-  trendingUp: "/assets/trending-up.svg",
-  sparkline1: "/assets/sparkline-1.svg",
-  sparkline2: "/assets/sparkline-2.svg",
-  sparkline3: "/assets/sparkline-3.svg",
-  sparkline4: "/assets/sparkline-4.svg",
-  ellipseBlue: "/assets/ellipse-blue.svg",
 } as const;
 
 
@@ -102,7 +99,124 @@ const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
   </section>
 );
 
-const MobileHomeView = ({ goal }: { goal?: GoalSummary | null }) => (
+const getChartPoints = (chart: GrowthReportSummary["chart"]) => {
+  const width = 300;
+  const height = 60;
+  const values = chart.map(({ value }) => value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  return chart.map(({ value }, index) => ({
+    x: chart.length === 1 ? width / 2 : (index / (chart.length - 1)) * width,
+    y: height - ((value - min) / range) * (height - 16) - 8,
+  }));
+};
+
+const GrowthChart = ({ chart }: { chart: GrowthReportSummary["chart"] }) => {
+  const points = getChartPoints(chart);
+
+  return (
+    <div className="relative h-[76px] w-full">
+      <div className="absolute inset-x-0 top-4 h-px bg-[#273142]" />
+      <div className="absolute inset-x-0 bottom-4 h-px bg-[#273142]" />
+      <svg
+        aria-label="推定1RMの推移"
+        className="absolute inset-0 size-full"
+        role="img"
+        viewBox="0 0 300 60"
+        preserveAspectRatio="none"
+      >
+        <polyline
+          points={points.map(({ x, y }) => `${x},${y}`).join(" ")}
+          fill="none"
+          stroke="#1856ed"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="3"
+          vectorEffect="non-scaling-stroke"
+        />
+        {points.map(({ x, y }, index) => (
+          <circle
+            key={`${x}-${y}`}
+            cx={x}
+            cy={y}
+            fill={index === points.length - 1 ? "#1856ed" : "#141822"}
+            r="3"
+            stroke="#1856ed"
+            strokeWidth="2"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+      </svg>
+    </div>
+  );
+};
+
+const GrowthReportContent = ({
+  growthReport,
+}: {
+  growthReport?: GrowthReportSummary | null;
+}) => {
+  if (!growthReport) {
+    return (
+      <div className="flex min-h-[180px] flex-col items-start justify-center gap-3 rounded-lg border border-[#242c3b] bg-[#141822] p-4 min-[769px]:min-h-[300px] min-[769px]:rounded-xl min-[769px]:border-[#273142] min-[769px]:bg-[#161c27] min-[769px]:p-6">
+        <p className="text-[13px] leading-[1.5] text-[#9ca3af]">
+          トレーニングを報告すると、好調な種目の推移がここに表示されます。
+        </p>
+        <Link
+          href="/report"
+          className="text-[13px] font-bold text-[#1856ed] transition-opacity hover:opacity-80"
+        >
+          トレーニングを報告する
+        </Link>
+      </div>
+    );
+  }
+
+  const trendPrefix = growthReport.trendRate > 0 ? "+" : "";
+  const trendClassName = growthReport.trendRate > 0
+    ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]"
+    : growthReport.trendRate < 0
+      ? "bg-[rgba(239,68,68,0.13)] text-[#ef4444]"
+      : "bg-[#242c3b] text-[#9ca3af]";
+
+  return (
+    <div className="flex min-h-[220px] flex-col gap-3 rounded-lg border border-[#242c3b] bg-[#141822] p-4 min-[769px]:min-h-[300px] min-[769px]:gap-[18px] min-[769px]:rounded-xl min-[769px]:border-[#273142] min-[769px]:bg-[#161c27] min-[769px]:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs text-[#9ca3af] min-[769px]:text-[13px]">
+            推定 1RM 推移（{growthReport.exercise}）
+          </p>
+          <p className="font-[family-name:var(--font-urbanist)] text-[#f9fafb]">
+            <span className="text-2xl font-bold min-[769px]:text-[32px]">
+              {growthReport.estimatedOneRepMax.toFixed(1)}
+            </span>{" "}
+            <span className="text-sm font-medium text-[#9ca3af]">kg</span>
+          </p>
+        </div>
+        <div className={`shrink-0 rounded-md px-2 py-1 text-xs font-bold ${trendClassName}`}>
+          {trendPrefix}{growthReport.trendRate.toFixed(1)}%
+        </div>
+      </div>
+
+      <GrowthChart chart={growthReport.chart} />
+
+      <div className="flex items-start justify-between gap-3 text-[11px]">
+        <span className="text-[#6b7280]">過去90日間の記録</span>
+        <span className="text-right text-[#9ca3af]">最も伸び率が高い種目</span>
+      </div>
+    </div>
+  );
+};
+
+const MobileHomeView = ({
+  goal,
+  growthReport,
+}: {
+  goal?: GoalSummary | null;
+  growthReport?: GrowthReportSummary | null;
+}) => (
   <div
     className="mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl bg-[#0b0d12] shadow-2xl"
     data-name="/"
@@ -134,79 +248,14 @@ const MobileHomeView = ({ goal }: { goal?: GoalSummary | null }) => (
         <section className="flex w-full flex-col gap-2">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold text-[#9ca3af]">成長レポート</h2>
-            <button
-              type="button"
+            <Link
+              href="/progress"
               className="text-[11px] text-[#6b7280] transition-colors hover:text-[#9ca3af]"
             >
               詳細表示
-            </button>
+            </Link>
           </div>
-          <div className="flex flex-col gap-3 rounded-lg border border-[#242c3b] bg-[#141822] p-4">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <p className="text-xs text-[#9ca3af]">推定 1RM 推移 (Bench Press)</p>
-                <p className="font-[family-name:var(--font-urbanist)] text-[#f9fafb]">
-                  <span className="text-2xl font-bold">92.5 </span>
-                  <span className="text-sm font-medium text-[#9ca3af]">kg</span>
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1 rounded-md bg-[rgba(16,185,129,0.13)] px-2 py-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="" className="size-3" src={assets.trendingUp} />
-                <span className="font-[family-name:var(--font-urbanist)] text-xs font-bold text-[#10b981]">
-                  +4.2%
-                </span>
-              </div>
-            </div>
-
-            <div className="flex h-[60px] w-full flex-col justify-center">
-              <div className="relative h-10 w-full max-w-[303px]">
-                <div className="absolute left-0 top-[10px] h-px w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="" className="h-px w-full max-w-none" src={assets.lineGrid} />
-                </div>
-                <div className="absolute left-0 top-[30px] h-px w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="" className="h-px w-full max-w-none" src={assets.lineGrid} />
-                </div>
-                <div className="absolute left-[10px] top-[19.47px] flex h-[15.529px] w-[57.956px] items-center justify-center">
-                  <div className="-rotate-[15deg]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt="" className="w-[60px] max-w-none" src={assets.sparkline1} />
-                  </div>
-                </div>
-                <div className="absolute left-[68px] top-[12.46px] flex h-[6.537px] w-[74.715px] items-center justify-center">
-                  <div className="-rotate-[5deg]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt="" className="w-[75px] max-w-none" src={assets.sparkline2} />
-                  </div>
-                </div>
-                <div className="absolute left-[143px] top-3 flex h-[16.633px] w-[78.252px] items-center justify-center">
-                  <div className="rotate-12">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt="" className="w-20 max-w-none" src={assets.sparkline3} />
-                  </div>
-                </div>
-                <div className="absolute left-[221px] top-[-1.43px] flex h-[30.429px] w-[65.254px] items-center justify-center">
-                  <div className="-rotate-[25deg]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt="" className="w-[72px] max-w-none" src={assets.sparkline4} />
-                  </div>
-                </div>
-                <div className="absolute left-[288px] top-[-3px] size-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="" className="size-full" src={assets.ellipseBlue} />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start justify-between gap-2 text-[11px]">
-              <span className="text-[#6b7280]">過去30日間の記録</span>
-              <span className="text-right text-[#9ca3af]">
-                自己ベスト更新まであと 2.5kg
-              </span>
-            </div>
-          </div>
+          <GrowthReportContent growthReport={growthReport} />
         </section>
       </main>
 
@@ -280,60 +329,32 @@ const DesktopGoalPanel = ({ goal }: { goal?: GoalSummary | null }) => (
   </section>
 );
 
-const DesktopGrowthReport = () => (
+const DesktopGrowthReport = ({
+  growthReport,
+}: {
+  growthReport?: GrowthReportSummary | null;
+}) => (
   <section className="flex min-w-0 flex-1 flex-col gap-2.5">
     <div>
       <h2 className="text-sm font-bold text-[#98a2b3]">成長レポート</h2>
-      <button
-        type="button"
+      <Link
+        href="/progress"
         className="mt-1 text-xs text-[#667085] transition-colors hover:text-[#98a2b3]"
       >
         詳細表示
-      </button>
+      </Link>
     </div>
-    <div className="flex min-h-[300px] flex-col gap-[18px] rounded-xl border border-[#273142] bg-[#161c27] p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[13px] text-[#98a2b3]">
-            推定 1RM 推移 (Bench Press)
-          </p>
-          <p className="font-[family-name:var(--font-urbanist)] text-[32px] font-bold text-[#f8fafc]">
-            92.5 kg
-          </p>
-        </div>
-        <div className="rounded-md bg-[#0d3b33] px-2.5 py-1.5">
-          <p className="font-[family-name:var(--font-urbanist)] text-[13px] font-bold text-[#19c48a]">
-            +4.2%
-          </p>
-        </div>
-      </div>
-
-      <div className="relative h-[110px] w-full overflow-hidden">
-        <div className="absolute left-0 top-[30px] h-px w-full bg-[#273142]" />
-        <div className="absolute left-0 top-[78px] h-px w-full bg-[#273142]" />
-        <svg aria-hidden className="absolute inset-x-2 top-[18px] h-[82px] w-[calc(100%-16px)]" viewBox="0 0 450 82" preserveAspectRatio="none">
-          <polyline
-            points="0,66 110,48 230,38 330,55 450,28"
-            fill="none"
-            stroke="#1856ed"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="4"
-          />
-        </svg>
-      </div>
-
-      <div className="flex items-start justify-between gap-3 text-[11px]">
-        <span className="text-[#667085]">過去30日間の記録</span>
-        <span className="text-right text-[#98a2b3]">
-          自己ベスト更新まであと 2.5kg
-        </span>
-      </div>
-    </div>
+    <GrowthReportContent growthReport={growthReport} />
   </section>
 );
 
-const DesktopHomeView = ({ goal }: { goal?: GoalSummary | null }) => (
+const DesktopHomeView = ({
+  goal,
+  growthReport,
+}: {
+  goal?: GoalSummary | null;
+  growthReport?: GrowthReportSummary | null;
+}) => (
   <main className="flex flex-col gap-6 p-10">
         <section className="flex gap-6">
           <DesktopActionCard
@@ -352,15 +373,19 @@ const DesktopHomeView = ({ goal }: { goal?: GoalSummary | null }) => (
         </section>
         <section className="flex gap-6">
           <DesktopGoalPanel goal={goal} />
-          <DesktopGrowthReport />
+          <DesktopGrowthReport growthReport={growthReport} />
         </section>
       </main>
 );
 
-export const FitnessAppHome = ({ goal = null, userName }: FitnessAppHomeProps) => (
+export const FitnessAppHome = ({
+  goal = null,
+  growthReport = null,
+  userName,
+}: FitnessAppHomeProps) => (
   <ResponsiveScreen
     userName={userName}
-    mobile={<MobileHomeView goal={goal} />}
-    desktop={<DesktopHomeView goal={goal} />}
+    mobile={<MobileHomeView goal={goal} growthReport={growthReport} />}
+    desktop={<DesktopHomeView goal={goal} growthReport={growthReport} />}
   />
 );

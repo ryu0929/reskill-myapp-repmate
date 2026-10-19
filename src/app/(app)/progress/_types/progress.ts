@@ -25,5 +25,6 @@ export type ProgressData = {
 
 export type ProgressScreenProps = {
   data?: ProgressData;
+  dataByExercise?: Record<Exercise, ProgressData>;
   userName?: string;
 };

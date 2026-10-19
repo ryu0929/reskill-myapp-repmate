@@ -2,6 +2,7 @@ import type { ChatApiMessage } from "@/lib/chat-types";
 
 export type ChatRequestBody = {
   exercise?: string;
+  mode?: "consult" | "report";
   messages?: ChatApiMessage[];
 };
 

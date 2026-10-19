@@ -13,10 +13,14 @@ export const MobileAppHeader = ({
 }: MobileAppHeaderProps) => (
   <header className={`flex w-full shrink-0 items-center justify-center ${className}`}>
     <div className={`flex items-center justify-between ${innerClassName}`}>
-      <div className="relative h-9 w-[84px] shrink-0">
+      <Link
+        href="/"
+        className="relative h-9 w-[84px] shrink-0 transition-opacity hover:opacity-90"
+        aria-label="ホームへ戻る"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
-      </div>
+      </Link>
       <Link
         href="/mypage"
         className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"

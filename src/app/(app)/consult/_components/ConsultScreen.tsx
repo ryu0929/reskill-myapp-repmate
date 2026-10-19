@@ -30,6 +30,10 @@ const assets = {
 
 const createId = () => crypto.randomUUID();
 
+const wait = (duration: number) => (
+  new Promise<void>((resolve) => window.setTimeout(resolve, duration))
+);
+
 const formatTime = (iso: string) =>
   new Intl.DateTimeFormat("ja-JP", {
     hour: "numeric",
@@ -256,6 +260,33 @@ const GoalProposalCard = ({
   </button>
 );
 
+const GoalChangeActions = ({
+  onChangeGoal,
+  onRestartConsultation,
+  compact = false,
+}: {
+  onChangeGoal: () => void;
+  onRestartConsultation: () => void;
+  compact?: boolean;
+}) => (
+  <div className={compact ? "grid shrink-0 grid-cols-2 gap-2" : "flex flex-col gap-2"}>
+    <button
+      type="button"
+      onClick={onChangeGoal}
+      className="flex min-h-11 items-center justify-center rounded-lg border border-[#2463eb] px-3 py-2.5 text-[13px] font-bold text-[#5b8cff] transition-colors hover:bg-[#17213a]"
+    >
+      候補から選びなおす
+    </button>
+    <button
+      type="button"
+      onClick={onRestartConsultation}
+      className="flex min-h-11 items-center justify-center rounded-lg bg-[#2463eb] px-3 py-2.5 text-[13px] font-bold text-[#f8fafc] transition-opacity hover:opacity-90"
+    >
+      もう一度相談する
+    </button>
+  </div>
+);
+
 const GoalComposerContent = ({
   goal,
   proposals,
@@ -263,11 +294,13 @@ const GoalComposerContent = ({
   isGeneratingGoals,
   isSavingGoal,
   isChangingGoal,
+  isReconsulting,
   canGenerateGoals,
   onGenerateGoals,
   onSelectGoal,
   onSaveGoal,
   onChangeGoal,
+  onRestartConsultation,
 }: Pick<
   ConsultViewProps,
   | "goal"
@@ -276,11 +309,13 @@ const GoalComposerContent = ({
   | "isGeneratingGoals"
   | "isSavingGoal"
   | "isChangingGoal"
+  | "isReconsulting"
   | "canGenerateGoals"
   | "onGenerateGoals"
   | "onSelectGoal"
   | "onSaveGoal"
   | "onChangeGoal"
+  | "onRestartConsultation"
 >) => {
   const hasProposals = proposals.length > 0;
 
@@ -307,8 +342,18 @@ const GoalComposerContent = ({
 
       <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
         {isGeneratingGoals && (
-          <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
-            <p className="animate-pulse text-[13px] text-[#98a2b3]">会話から目標を考えています…</p>
+          <div
+            className="flex items-center gap-3 rounded-lg border border-[#273142] bg-[#141822] p-4"
+            role="status"
+            aria-live="polite"
+          >
+            <span
+              className="size-4 shrink-0 animate-spin rounded-full border-2 border-[#384866] border-t-[#5b8cff]"
+              aria-hidden
+            />
+            <p className="animate-pulse text-[13px] text-[#98a2b3]">
+              AIが目標を作成中です…
+            </p>
           </div>
         )}
 
@@ -348,20 +393,18 @@ const GoalComposerContent = ({
           className="flex w-full items-center justify-center rounded-lg bg-[#2463eb] p-3.5 text-sm font-bold text-[#f8fafc] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isSavingGoal
-            ? "保存中…"
+            ? isChangingGoal
+              ? "変更を保存中です…"
+              : "目標を設定中です…"
             : isChangingGoal
               ? "変更を保存する"
               : "目標を設定する"}
         </button>
-      ) : goal ? (
-        <button
-          type="button"
-          onClick={onChangeGoal}
-          disabled={isGeneratingGoals}
-          className="flex w-full items-center justify-center rounded-lg border border-[#2463eb] p-3.5 text-sm font-bold text-[#5b8cff] transition-colors hover:bg-[#17213a] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {isGeneratingGoals ? "候補を読み込み中…" : "目標を変更する"}
-        </button>
+      ) : goal && !isReconsulting ? (
+        <GoalChangeActions
+          onChangeGoal={onChangeGoal}
+          onRestartConsultation={onRestartConsultation}
+        />
       ) : (
         <button
           type="button"
@@ -371,7 +414,15 @@ const GoalComposerContent = ({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt="" className="size-4" src={assets.plusCircle} />
-          <span>{canGenerateGoals ? "今日の目標を決める" : "AIと1往復以上相談してください"}</span>
+          <span>
+            {isGeneratingGoals
+              ? "作成中です…"
+              : canGenerateGoals
+                ? isReconsulting
+                  ? "新しい目標を決める"
+                  : "今日の目標を決める"
+                : "AIと1往復以上相談してください"}
+          </span>
         </button>
       )}
     </>
@@ -396,6 +447,7 @@ const MobileConsultView = ({
   isGeneratingGoals,
   isSavingGoal,
   isChangingGoal,
+  isReconsulting,
   isGoalComposerOpen,
   canGenerateGoals,
   chatEndRef,
@@ -407,6 +459,7 @@ const MobileConsultView = ({
   onSelectGoal,
   onSaveGoal,
   onChangeGoal,
+  onRestartConsultation,
   onCloseGoalComposer,
 }: ConsultViewProps) => (
   <div
@@ -424,24 +477,32 @@ const MobileConsultView = ({
       />
       <ChatArea messages={messages} isSending={isSending} chatEndRef={chatEndRef} />
       <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
-      <button
-        type="button"
-        onClick={goal ? onChangeGoal : onGenerateGoals}
-        disabled={goal ? isGeneratingGoals : !canGenerateGoals || isGeneratingGoals}
-        className="flex shrink-0 items-center justify-center gap-2 rounded-[10px] bg-gradient-to-r from-[#2a52a0] to-[#1e418c] p-3.5 shadow-[0px_4px_6px_rgba(24,86,237,0.2)] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img alt="" className="size-3.5" src={assets.plusCircle} />
-        <span className="text-[15px] font-bold text-white">
-          {isGeneratingGoals
-            ? "候補を読み込み中…"
-            : goal
-              ? "目標を変更する"
+      {goal && !isReconsulting ? (
+        <GoalChangeActions
+          onChangeGoal={onChangeGoal}
+          onRestartConsultation={onRestartConsultation}
+          compact
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={onGenerateGoals}
+          disabled={!canGenerateGoals || isGeneratingGoals}
+          className="flex shrink-0 items-center justify-center gap-2 rounded-[10px] bg-gradient-to-r from-[#2a52a0] to-[#1e418c] p-3.5 shadow-[0px_4px_6px_rgba(24,86,237,0.2)] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt="" className="size-3.5" src={assets.plusCircle} />
+          <span className="text-[15px] font-bold text-white">
+            {isGeneratingGoals
+              ? "候補を読み込み中…"
               : canGenerateGoals
-                ? "今日の目標を決める"
+                ? isReconsulting
+                  ? "新しい目標を決める"
+                  : "今日の目標を決める"
                 : "AIと1往復以上相談してください"}
-        </span>
-      </button>
+          </span>
+        </button>
+      )}
     </div>
 
     <div
@@ -475,11 +536,13 @@ const MobileConsultView = ({
         isGeneratingGoals={isGeneratingGoals}
         isSavingGoal={isSavingGoal}
         isChangingGoal={isChangingGoal}
+        isReconsulting={isReconsulting}
         canGenerateGoals={canGenerateGoals}
         onGenerateGoals={onGenerateGoals}
         onSelectGoal={onSelectGoal}
         onSaveGoal={onSaveGoal}
         onChangeGoal={onChangeGoal}
+        onRestartConsultation={onRestartConsultation}
       />
     </aside>
 
@@ -500,6 +563,7 @@ const DesktopConsultView = ({
   isGeneratingGoals,
   isSavingGoal,
   isChangingGoal,
+  isReconsulting,
   isGoalComposerOpen,
   canGenerateGoals,
   onExerciseToggle,
@@ -510,6 +574,7 @@ const DesktopConsultView = ({
   onSelectGoal,
   onSaveGoal,
   onChangeGoal,
+  onRestartConsultation,
   onCloseGoalComposer,
 }: ConsultViewProps) => (
   <main className="flex min-h-0 flex-1">
@@ -539,6 +604,7 @@ const DesktopConsultView = ({
         isGeneratingGoals={isGeneratingGoals}
         isSavingGoal={isSavingGoal}
         isChangingGoal={isChangingGoal}
+        isReconsulting={isReconsulting}
         isGoalComposerOpen={isGoalComposerOpen}
         canGenerateGoals={canGenerateGoals}
         onExerciseToggle={onExerciseToggle}
@@ -549,6 +615,7 @@ const DesktopConsultView = ({
         onSelectGoal={onSelectGoal}
         onSaveGoal={onSaveGoal}
         onChangeGoal={onChangeGoal}
+        onRestartConsultation={onRestartConsultation}
         onCloseGoalComposer={onCloseGoalComposer}
       />
     </main>
@@ -567,6 +634,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
   const [isGeneratingGoals, setIsGeneratingGoals] = useState(false);
   const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [isChangingGoal, setIsChangingGoal] = useState(false);
+  const [isReconsulting, setIsReconsulting] = useState(false);
   const [isGoalComposerOpen, setIsGoalComposerOpen] = useState(false);
   const [completedTurns, setCompletedTurns] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -651,6 +719,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     setProposals([]);
     setSelectedProposalId(null);
     setIsChangingGoal(false);
+    setIsReconsulting(Boolean(activeGoal));
     setIsGoalComposerOpen(false);
     setCompletedTurns(0);
   };
@@ -665,11 +734,14 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     setIsChangingGoal(false);
 
     try {
-      const response = await fetch("/api/goals/proposals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exercise, messages: apiMessages }),
-      });
+      const [response] = await Promise.all([
+        fetch("/api/goals/proposals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ exercise, messages: apiMessages }),
+        }),
+        wait(1000),
+      ]);
       const data = (await response.json()) as {
         proposals?: GoalProposal[];
         error?: string;
@@ -695,6 +767,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     setIsGoalComposerOpen(true);
     setIsGeneratingGoals(true);
     setIsChangingGoal(true);
+    setIsReconsulting(false);
 
     try {
       const response = await fetch(`/api/goals/${activeGoal.id}`);
@@ -719,6 +792,18 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     } finally {
       setIsGeneratingGoals(false);
     }
+  };
+
+  const restartConsultation = () => {
+    setMessages([welcomeMessage(exercise)]);
+    setInput("");
+    setProposals([]);
+    setSelectedProposalId(null);
+    setIsChangingGoal(false);
+    setIsReconsulting(true);
+    setIsGoalComposerOpen(false);
+    setCompletedTurns(0);
+    setToastMessage("新しい相談を開始しました");
   };
 
   const saveGoal = async () => {
@@ -770,6 +855,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
       setProposals([]);
       setSelectedProposalId(null);
       setIsChangingGoal(false);
+      setIsReconsulting(false);
       setIsGoalComposerOpen(false);
       setToastMessage(successMessage);
       router.refresh();
@@ -794,6 +880,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     isGeneratingGoals,
     isSavingGoal,
     isChangingGoal,
+    isReconsulting,
     isGoalComposerOpen,
     canGenerateGoals,
     onExerciseToggle: () => setShowExercisePicker((open) => !open),
@@ -804,6 +891,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     onSelectGoal: setSelectedProposalId,
     onSaveGoal: saveGoal,
     onChangeGoal: changeGoal,
+    onRestartConsultation: restartConsultation,
     onCloseGoalComposer: () => setIsGoalComposerOpen(false),
   };
 

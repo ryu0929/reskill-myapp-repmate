@@ -332,9 +332,14 @@ const DesktopProgressView = ({
     </main>
 );
 
-const ProgressScreen = ({ data = defaultProgressData, userName }: ProgressScreenProps) => {
+const ProgressScreen = ({
+  data = defaultProgressData,
+  dataByExercise,
+  userName,
+}: ProgressScreenProps) => {
   const [exercise, setExercise] = useState<Exercise>(data.exercise);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const selectedData = dataByExercise?.[exercise] ?? data;
 
   const handleExerciseChange = (next: Exercise) => {
     setExercise(next);
@@ -342,7 +347,7 @@ const ProgressScreen = ({ data = defaultProgressData, userName }: ProgressScreen
   };
 
   const viewProps = {
-    data,
+    data: selectedData,
     exercise,
     showExercisePicker,
     onExerciseToggle: () => setShowExercisePicker((open) => !open),

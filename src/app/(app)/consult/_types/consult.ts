@@ -36,6 +36,7 @@ export type ConsultViewProps = {
   isGeneratingGoals: boolean;
   isSavingGoal: boolean;
   isChangingGoal: boolean;
+  isReconsulting: boolean;
   isGoalComposerOpen: boolean;
   canGenerateGoals: boolean;
   onExerciseToggle: () => void;
@@ -46,5 +47,6 @@ export type ConsultViewProps = {
   onSelectGoal: (proposalId: string) => void;
   onSaveGoal: () => void;
   onChangeGoal: () => void;
+  onRestartConsultation: () => void;
   onCloseGoalComposer: () => void;
 };

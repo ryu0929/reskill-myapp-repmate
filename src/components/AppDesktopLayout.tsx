@@ -49,12 +49,16 @@ const getDesktopPageMeta = (pathname: string) =>
   desktopPageMeta[pathname] ?? desktopPageMeta["/"];
 
 const HeaderLogo = () => (
-  <div className="flex items-center gap-2">
+  <Link
+    href="/"
+    className="flex w-fit items-center gap-2 transition-opacity hover:opacity-90"
+    aria-label="ホームへ戻る"
+  >
     <div className="relative h-9 w-[84px] shrink-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
     </div>
-  </div>
+  </Link>
 );
 
 const DesktopNavItem = ({
