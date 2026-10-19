@@ -69,6 +69,126 @@ NextResponse.json()で結果を返す
 画面のstateを更新して再表示
 ```
 
+### requestとresponseをファイル単位で追う図
+
+新規作成（POST）を例にすると、実際には次の2ファイル間で通信しています。
+
+```text
+【画面・クライアント側】
+src/app/(app)/report/_components/ReportScreen.tsx
+
+saveRecord()
+  |
+  |  fetch("/api/training-records", { method: "POST", body: ... })
+  |  ここから「HTTPリクエスト」を送信
+  v
+================================================================ HTTP
+  v
+【API・サーバー側】
+src/app/api/training-records/route.ts
+
+POST(request: Request)
+  |  画面から送られたHTTPリクエストをrequestとして受け取る
+  |  request.json()でbodyを取り出す
+  |  Zodで検証する
+  |  PrismaでDBへ保存する
+  |
+  |  NextResponse.json({ records }, { status: 201 })
+  |  ここから「HTTPレスポンス」を返す
+  v
+================================================================ HTTP
+  v
+【画面・クライアント側】
+src/app/(app)/report/_components/ReportScreen.tsx
+
+const response = await fetch(...)
+  |  APIから返されたHTTPレスポンスがresponseへ入る
+  |
+  +-- response.ok      成功したか
+  +-- response.status  201などのステータス
+  +-- response.json()  JSON本文を取り出す
+```
+
+ここで重要なのは、`response`という変数がAPI側で`request`へ変換されるわけではないことです。
+
+```text
+画面からAPIへ向かう通信 = request
+APIから画面へ戻る通信   = response
+```
+
+変数名は任意ですが、RepMateでは役割が分かりやすいように次の名前を使っています。
+
+```ts
+// API側: 受け取ったリクエスト
+export const POST = async (request: Request) => {
+  const body = await request.json();
+};
+
+// 画面側: APIから返されたレスポンス
+const response = await fetch("/api/training-records");
+const data = await response.json();
+```
+
+### CRUDごとの送信元と受信先
+
+| 処理 | 画面側の関数 | HTTP | API側のファイル・関数 |
+|---|---|---|---|
+| 一覧取得 | `fetchRecords()` | `GET` | `api/training-records/route.ts`の`GET()` |
+| 新規作成 | `saveRecord()` | `POST` | `api/training-records/route.ts`の`POST()` |
+| 更新 | `saveRecordEdit()` | `PATCH` | `api/training-records/[id]/route.ts`の`PATCH()` |
+| 削除 | `deleteRecord()` | `DELETE` | `api/training-records/[id]/route.ts`の`DELETE()` |
+
+`GET`と`POST`はIDを指定しないため通常の`route.ts`へ届きます。`PATCH`と`DELETE`は対象のIDをURLへ含めるため、`[id]/route.ts`へ届きます。
+
+### 最重要: 覚えておくCRUDテンプレート早見表
+
+この2つは、まず何度も書いて流れを覚えたいテンプレートです。後半の「16. 最低限、自力で書けるようにしたいテンプレート」にも、同じ内容と説明を残しています。
+
+#### 画面・クライアント側
+
+```ts
+const createItem = async () => {
+  try {
+    const response = await fetch("/api/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "sample" }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+
+    // 一覧を再取得する、またはstateへ追加する
+  } catch (error) {
+    console.error(error);
+  }
+};
+```
+
+#### API・サーバー側
+
+```ts
+export const POST = async (request: Request) => {
+  const body: unknown = await request.json().catch(() => null);
+  const result = schema.safeParse(body);
+
+  if (!result.success) {
+    return NextResponse.json({ error: "入力エラー" }, { status: 400 });
+  }
+
+  const item = await prisma.item.create({
+    data: result.data,
+  });
+
+  return NextResponse.json({ item }, { status: 201 });
+};
+```
+
+```text
+画面: 送る → レスポンスを確認する → 画面を更新する
+API : 受け取る → 検証する → DB操作する → 結果を返す
+```
+
 関連ファイルは次のとおりです。
 
 | 役割 | ファイル |
