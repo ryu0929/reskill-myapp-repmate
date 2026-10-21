@@ -5,7 +5,7 @@ import type { ResponsiveScreenProps } from "@/components/_types/responsive-scree
 
 export const ResponsiveScreen = ({ mobile, desktop, userName }: ResponsiveScreenProps) => (
   <>
-    <div className="max-[768px]:block min-[769px]:hidden">{mobile}</div>
+    <div className="block h-full w-full min-w-0 min-[769px]:hidden">{mobile}</div>
     <div className="hidden w-full min-[769px]:flex">
       <AppDesktopLayout userName={userName}>{desktop}</AppDesktopLayout>
     </div>

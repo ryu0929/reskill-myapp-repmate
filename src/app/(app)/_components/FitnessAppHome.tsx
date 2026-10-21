@@ -4,6 +4,7 @@ import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import type {
+  ActionCardProps,
   FitnessAppHomeProps,
   GoalSummary,
   GrowthReportSummary,
@@ -22,19 +23,14 @@ const assets = {
 
 const ActionCard = ({
   title,
+  href,
   lines,
   actionIcon,
   actionIconClassName = "size-3.5",
   actionLabel,
-}: {
-  title: string;
-  lines: string[];
-  actionIcon: string;
-  actionIconClassName?: string;
-  actionLabel: string;
-}) => (
-  <button
-    type="button"
+}: ActionCardProps) => (
+  <Link
+    href={href}
     className="flex w-full items-center gap-3 rounded-lg bg-gradient-to-r from-[#2a52a0] to-[#1e418c] p-4 text-left shadow-[0px_4px_6px_rgba(24,86,237,0.2)] transition-opacity hover:opacity-95"
   >
     <div className="relative size-12 shrink-0 overflow-hidden rounded-3xl">
@@ -62,7 +58,7 @@ const ActionCard = ({
       <img alt="" className={actionIconClassName} src={actionIcon} />
     </span>
     <span className="sr-only">{actionLabel}</span>
-  </button>
+  </Link>
 );
 
 const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
@@ -218,15 +214,16 @@ const MobileHomeView = ({
   growthReport?: GrowthReportSummary | null;
 }) => (
   <div
-    className="mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl bg-[#0b0d12] shadow-2xl"
+    className="mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/"
     data-node-id="165:520"
   >
       <MobileAppHeader />
 
-      <main className="flex h-[664px] w-full shrink-0 flex-col gap-4 overflow-y-auto px-5 pb-4">
+      <main className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4 [&>*]:shrink-0">
         <ActionCard
           title="相談する"
+          href="/consult"
           lines={[
             "AIトレーナーとチャットでメニューや強度を相談",
             "現在のメニューを最適化しましょう",
@@ -239,6 +236,7 @@ const MobileHomeView = ({
 
         <ActionCard
           title="報告する"
+          href="/report"
           lines={["AIトレーナーとチャットでトレーニングを記録"]}
           actionIcon={assets.play}
           actionIconClassName="size-4"
@@ -259,7 +257,7 @@ const MobileHomeView = ({
         </section>
       </main>
 
-      <AppTabBar active="home" variant="home" />
+      <AppTabBar active="home" />
     </div>
 );
 

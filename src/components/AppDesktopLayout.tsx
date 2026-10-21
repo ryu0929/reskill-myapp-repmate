@@ -159,7 +159,7 @@ export const AppDesktopLayout = ({
   const userName = userNameProp ?? contextUserName;
 
   return (
-    <div className="flex min-h-[calc(100vh-32px)] w-full max-w-[1440px] overflow-hidden rounded-2xl bg-[#080b10] shadow-2xl">
+    <div className="flex min-h-[calc(100vh-32px)] w-full overflow-hidden rounded-2xl bg-[#080b10] shadow-2xl">
       <DesktopSidebar active={meta.active} userName={userName} />
       <div className="flex min-w-0 flex-1 flex-col">
         <DesktopHeader

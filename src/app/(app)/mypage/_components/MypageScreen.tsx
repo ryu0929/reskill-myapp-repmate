@@ -155,14 +155,14 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
 
   return (
     <section
-      className="flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-[20px] bg-[#0b0d12] min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px] min-[769px]:rounded-none min-[769px]:bg-[#080b10]"
+      className="flex h-full w-full flex-col overflow-hidden min-[769px]:h-auto bg-[#0b0d12] min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px] min-[769px]:rounded-none min-[769px]:bg-[#080b10]"
     >
       <MobileAppHeader />
       <main
-        className="flex min-h-0 flex-1 flex-col items-center justify-center px-5 pb-4 pt-6 min-[769px]:px-5 min-[769px]:py-0"
+        className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain px-5 pb-4 pt-6 min-[769px]:justify-center min-[769px]:px-5 min-[769px]:py-0"
       >
         <div
-          className="flex w-full max-w-[335px] flex-col gap-5 min-[769px]:max-w-[420px] min-[769px]:gap-6"
+          className="flex w-full shrink-0 flex-col gap-5 min-[769px]:max-w-[420px] min-[769px]:gap-6"
         >
           <ProfileSummary
             user={profile}

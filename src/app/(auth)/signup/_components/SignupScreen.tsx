@@ -196,10 +196,10 @@ const SignupForm = () => {
 export const SignupScreen = () => (
   <main className="flex min-h-screen items-center justify-center bg-[#050608] p-4">
     <section
-      className="flex min-h-[812px] w-full max-w-[375px] flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#0b0d12] px-10 min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px] min-[769px]:px-5"
+      className="flex min-h-[812px] w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#0b0d12] px-10 min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px] min-[769px]:px-5"
       data-name="/signup"
     >
-      <div className="flex w-full max-w-[420px] flex-col items-center gap-5 pb-8 pt-10">
+      <div className="flex w-full min-[769px]:max-w-[420px] flex-col items-center gap-5 pb-8 pt-10">
         <div className="relative h-[52px] w-[120px] shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
@@ -214,7 +214,7 @@ export const SignupScreen = () => (
         </div>
       </div>
 
-      <div className="flex w-full max-w-[295px] flex-col gap-[18px] pb-10 min-[769px]:max-w-[420px] min-[769px]:gap-7">
+      <div className="flex w-full flex-col gap-[18px] pb-10 min-[769px]:max-w-[420px] min-[769px]:gap-7">
         <SignupForm />
         <p className="text-center text-[13px] text-[#9ca3af] min-[769px]:text-sm">
           すでにアカウントをお持ちですか？

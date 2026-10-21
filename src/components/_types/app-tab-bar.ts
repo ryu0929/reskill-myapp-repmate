@@ -9,5 +9,4 @@ export type TabConfig = {
 
 export type AppTabBarProps = {
   active: AppTabId;
-  variant?: "home" | "consult";
 };

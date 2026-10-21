@@ -136,10 +136,10 @@ const LoginForm = () => {
 export const LoginScreen = () => (
   <main className="flex min-h-screen items-center justify-center bg-[#050608] p-4">
     <section
-      className="flex min-h-[812px] w-full max-w-[375px] flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#0b0d12] px-5 min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px]"
+      className="flex min-h-[812px] w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#0b0d12] px-5 min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px]"
       data-name="/login"
     >
-      <div className="flex w-full max-w-[420px] flex-col items-center gap-5 pb-8 pt-10">
+      <div className="flex w-full min-[769px]:max-w-[420px] flex-col items-center gap-5 pb-8 pt-10">
         <div className="relative h-[52px] w-[120px] shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
@@ -154,7 +154,7 @@ export const LoginScreen = () => (
         </div>
       </div>
 
-      <div className="flex w-full max-w-[335px] flex-col gap-[18px] pb-10 min-[769px]:max-w-[420px] min-[769px]:px-5">
+      <div className="flex w-full flex-col gap-[18px] pb-10 min-[769px]:max-w-[420px] min-[769px]:px-5">
         <LoginForm />
         <p className="text-center text-[13px] text-[#9ca3af]">
           アカウントをお持ちでないですか？

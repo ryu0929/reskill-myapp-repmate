@@ -137,7 +137,7 @@ const ChatBubble = ({
       <div className="flex w-full justify-end">
         <div
           className={`flex flex-col gap-1 rounded-bl-[10px] rounded-br-[10px] rounded-tl-[10px] bg-[#222b3f] ${
-            desktop ? "w-full max-w-[420px] p-3.5" : "w-[240px] p-3"
+            desktop ? "w-full max-w-[420px] p-3.5" : "w-[75%] min-w-0 wrap-anywhere p-3"
           }`}
         >
           <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
@@ -160,7 +160,7 @@ const ChatBubble = ({
         className={`flex flex-col gap-1 rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border bg-[linear-gradient(90deg,#16223b_0%,#0f1420_100%)] ${
           desktop
             ? "w-full max-w-[420px] border-[#273142] p-3.5"
-            : "w-[240px] border-[#242c3b] p-3"
+            : "w-[75%] min-w-0 wrap-anywhere border-[#242c3b] p-3"
         }`}
       >
         <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
@@ -185,7 +185,7 @@ const ChatArea = ({
   chatEndRef: RefObject<HTMLDivElement | null>;
   desktop?: boolean;
 }) => (
-  <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-1">
+  <div className={`flex flex-1 flex-col gap-4 overflow-y-auto py-1 ${desktop ? "min-h-0" : "min-h-32"}`}>
     {messages.map((message) => (
       <ChatBubble key={message.id} message={message} desktop={desktop} />
     ))}
@@ -512,12 +512,12 @@ const MobileReportView = ({
   onSubmit,
 }: ReportViewProps) => (
   <div
-    className="relative mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl bg-[#0b0d12] shadow-2xl"
+    className="relative mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/report"
   >
     <MobileAppHeader />
 
-    <main className="flex min-h-0 flex-1 flex-col gap-4 px-5 pb-4">
+    <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4">
       <GoalSection goal={goal} />
       <ExerciseSelector
         exercise={exercise}
@@ -555,7 +555,7 @@ const MobileReportView = ({
     />
     <aside
       aria-label="本日のトレーニング記録"
-      className={`absolute inset-x-0 bottom-20 z-30 flex max-h-[65%] flex-col gap-4 rounded-t-2xl border-t border-[#242c3b] bg-[#111620] px-5 pb-5 pt-2 transition-transform duration-200 ease-out ${
+      className={`absolute inset-x-0 bottom-[calc(80px+env(safe-area-inset-bottom))] z-30 flex max-h-[65%] flex-col gap-4 rounded-t-2xl border-t border-[#242c3b] bg-[#111620] px-5 pb-5 pt-2 transition-transform duration-200 ease-out ${
         isRecordPanelOpen ? "translate-y-0" : "translate-y-[110%]"
       }`}
     >
@@ -588,7 +588,7 @@ const MobileReportView = ({
       />
     </aside>
 
-    <AppTabBar active="report" variant="consult" />
+    <AppTabBar active="report" />
   </div>
 );
 

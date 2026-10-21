@@ -8,53 +8,40 @@ const homeTabs: TabConfig[] = [
   { id: "progress", href: "/progress", label: "progress", icon: "/assets/tab-progress.svg" },
 ];
 
-const consultTabs: TabConfig[] = [
-  { id: "home", href: "/", label: "HOME", icon: "/assets/consult/tab-home.svg" },
-  { id: "consult", href: "/consult", label: "CONSULT", icon: "/assets/consult/tab-consult.svg" },
-  { id: "report", href: "/report", label: "REPORT", icon: "/assets/consult/tab-report.svg" },
-  { id: "progress", href: "/progress", label: "PROGRESS", icon: "/assets/consult/tab-progress.svg" },
-];
-
-
-export const AppTabBar = ({ active, variant = "home" }: AppTabBarProps) => {
-  const tabs = variant === "consult" ? consultTabs : homeTabs;
-  const heightClass = variant === "consult" ? "h-[84px]" : "h-20";
-  const iconClass = variant === "consult" ? "size-4" : "size-5";
-  const labelClass =
-    variant === "consult"
-      ? "font-bold uppercase"
-      : "font-semibold uppercase";
-
+export const AppTabBar = ({ active }: AppTabBarProps) => {
+  const heightClass = "h-[calc(80px+env(safe-area-inset-bottom))]";
   return (
-    <nav
-      className={`flex ${heightClass} w-full shrink-0 items-center justify-between border-t border-[#242c3b] bg-[#141822] px-4`}
-      aria-label="メイン"
-    >
-      {tabs.map((tab) => {
-        const isActive = tab.id === active;
-        return (
-          <Link
-            key={tab.id}
-            href={tab.href}
-            className={`flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg ${
-              isActive ? "bg-[#1d3f83]" : ""
-            }`}
-            aria-current={isActive ? "page" : undefined}
-          >
-            <span className="flex size-5 items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt="" className={iconClass} src={tab.icon} />
-            </span>
-            <span
-              className={`font-[family-name:var(--font-urbanist)] text-[10px] ${labelClass} ${
-                isActive ? "text-[#f8fafc]" : "text-[#6b7280]"
+    <div className={`${heightClass} w-full shrink-0`}>
+      <nav
+        className={`fixed inset-x-0 bottom-0 z-50 flex ${heightClass} w-full shrink-0 items-center justify-between border-t border-[#242c3b] bg-[#141822] px-4 pb-[env(safe-area-inset-bottom)] min-[769px]:static`}
+        aria-label="メイン"
+      >
+        {homeTabs.map((tab) => {
+          const isActive = tab.id === active;
+          return (
+            <Link
+              key={tab.id}
+              href={tab.href}
+              className={`flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg ${
+                isActive ? "bg-[#1d3f83]" : ""
               }`}
+              aria-current={isActive ? "page" : undefined}
             >
-              {tab.label}
-            </span>
-          </Link>
-        );
-      })}
-    </nav>
+              <span className="flex size-5 items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img alt="" className="size-5" src={tab.icon} />
+              </span>
+              <span
+                className={`font-[family-name:var(--font-urbanist)] text-[10px] font-semibold uppercase ${
+                  isActive ? "text-[#f8fafc]" : "text-[#6b7280]"
+                }`}
+              >
+                {tab.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 };

@@ -8,26 +8,30 @@ const assets = {
 } as const;
 
 export const MobileAppHeader = ({
-  className = "px-5 py-4",
+  className = "px-5 pb-4 pt-[calc(var(--spacing)*4+env(safe-area-inset-top))]",
   innerClassName = "w-full",
 }: MobileAppHeaderProps) => (
-  <header className={`flex w-full shrink-0 items-center justify-center ${className}`}>
-    <div className={`flex items-center justify-between ${innerClassName}`}>
-      <Link
-        href="/"
-        className="relative h-9 w-[84px] shrink-0 transition-opacity hover:opacity-90"
-        aria-label="ホームへ戻る"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
-      </Link>
-      <Link
-        href="/mypage"
-        className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
-        aria-label="マイページ"
-      >
-        <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
-      </Link>
-    </div>
-  </header>
+  <div className="h-[calc(68px+env(safe-area-inset-top))] w-full shrink-0 min-[769px]:h-auto">
+    <header
+      className={`fixed inset-x-0 top-0 z-50 flex w-full shrink-0 items-center justify-center bg-[#0b0d12] min-[769px]:static ${className}`}
+    >
+      <div className={`flex items-center justify-between ${innerClassName}`}>
+        <Link
+          href="/"
+          className="relative h-9 w-[84px] shrink-0 transition-opacity hover:opacity-90"
+          aria-label="ホームへ戻る"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
+        </Link>
+        <Link
+          href="/mypage"
+          className="relative size-8 shrink-0 overflow-hidden rounded-2xl transition-opacity hover:opacity-90"
+          aria-label="マイページ"
+        >
+          <Image src={assets.avatar} alt="" fill className="object-cover" sizes="32px" />
+        </Link>
+      </div>
+    </header>
+  </div>
 );

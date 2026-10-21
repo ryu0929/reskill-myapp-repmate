@@ -282,11 +282,11 @@ const MobileProgressView = ({
   onExerciseChange: (exercise: Exercise) => void;
 }) => (
   <div
-    className="mx-auto flex min-h-[1004px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl bg-[#0b0d12] shadow-2xl"
+    className="mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/progress"
   >
     <MobileAppHeader />
-    <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
+    <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-5 [&>*]:shrink-0">
       <ExerciseSelector
         exercise={exercise}
         isOpen={showExercisePicker}
@@ -298,7 +298,7 @@ const MobileProgressView = ({
       <PersonalBestsCard records={data.personalBests} />
       <AiAnalysisCard comment={data.aiComment} />
     </main>
-    <AppTabBar active="progress" variant="home" />
+    <AppTabBar active="progress" />
   </div>
 );
 

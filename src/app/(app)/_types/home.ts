@@ -19,3 +19,12 @@ export type FitnessAppHomeProps = {
   growthReport?: GrowthReportSummary | null;
   userName?: string;
 };
+
+export type ActionCardProps = {
+  title: string;
+  href: string;
+  lines: string[];
+  actionIcon: string;
+  actionIconClassName?: string;
+  actionLabel: string;
+};

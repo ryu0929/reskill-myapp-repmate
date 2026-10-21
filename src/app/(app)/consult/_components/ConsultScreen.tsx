@@ -110,7 +110,7 @@ const ChatBubble = ({
       <div className="flex w-full justify-end">
         <div
           className={`rounded-bl-[10px] rounded-br-[10px] rounded-tl-[10px] bg-[#222b3f] ${
-            desktop ? "w-full max-w-[420px] p-3.5" : "w-[230px] p-3"
+            desktop ? "w-full max-w-[420px] p-3.5" : "w-[75%] min-w-0 wrap-anywhere p-3"
           }`}
         >
           <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
@@ -135,7 +135,7 @@ const ChatBubble = ({
         className={`rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border bg-gradient-to-r from-[#16223b] to-[#0f1420] ${
           desktop
             ? "w-full max-w-[420px] border-[#273142] p-3.5"
-            : "w-[245px] border-[#242c3b] p-3"
+            : "w-[75%] min-w-0 wrap-anywhere border-[#242c3b] p-3"
         }`}
       >
         <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
@@ -162,7 +162,7 @@ const ChatArea = ({
 }) => (
   <div
     className={`flex min-h-0 flex-1 flex-col overflow-y-auto ${
-      desktop ? "gap-4 py-1" : "gap-4 py-1"
+      desktop ? "gap-4 py-1" : "min-h-32 gap-4 py-1"
     }`}
   >
     {messages.map((message, index) => (
@@ -463,12 +463,12 @@ const MobileConsultView = ({
   onCloseGoalComposer,
 }: ConsultViewProps) => (
   <div
-    className="relative mx-auto flex min-h-[812px] w-full max-w-[375px] flex-col overflow-hidden rounded-2xl border border-[#242c3b] bg-[#0b0d12] shadow-2xl"
+    className="relative mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/consult"
   >
     <MobileAppHeader />
 
-    <div className="flex min-h-0 flex-1 flex-col gap-3 px-5 pb-3 pt-1">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 pb-3 pt-1">
       <ExerciseSelector
         exercise={exercise}
         isOpen={showExercisePicker}
@@ -514,7 +514,7 @@ const MobileConsultView = ({
     />
     <aside
       aria-label="今日の目標候補"
-      className={`absolute inset-x-0 bottom-20 z-30 flex max-h-[72%] flex-col gap-4 rounded-t-2xl border-t border-[#242c3b] bg-gradient-to-r from-[#1a2744] to-[#0f1520] px-5 pb-5 pt-2 transition-transform duration-200 ease-out ${
+      className={`absolute inset-x-0 bottom-[calc(80px+env(safe-area-inset-bottom))] z-30 flex max-h-[72%] flex-col gap-4 rounded-t-2xl border-t border-[#242c3b] bg-gradient-to-r from-[#1a2744] to-[#0f1520] px-5 pb-5 pt-2 transition-transform duration-200 ease-out ${
         isGoalComposerOpen ? "translate-y-0" : "translate-y-[110%]"
       }`}
     >
@@ -546,7 +546,7 @@ const MobileConsultView = ({
       />
     </aside>
 
-    <AppTabBar active="consult" variant="consult" />
+    <AppTabBar active="consult" />
   </div>
 );
 
