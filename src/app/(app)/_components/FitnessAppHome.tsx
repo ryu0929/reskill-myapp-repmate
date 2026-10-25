@@ -1,18 +1,16 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import type {
-  ActionCardProps,
   FitnessAppHomeProps,
   GoalSummary,
   GrowthReportSummary,
 } from "../_types/home";
+import { HomeActionCard } from "./HomeActionCard";
 
 const assets = {
   avatar: "/assets/avatarIcon.svg",
-  avatarFrame: "/assets/avatar-frame.png",
   logo: "/assets/repmate-logo.svg",
   chevronRight: "/assets/chevron-right.svg",
   chevronRightGoal: "/assets/chevron-right-goal.svg",
@@ -20,46 +18,6 @@ const assets = {
 } as const;
 
 
-
-const ActionCard = ({
-  title,
-  href,
-  lines,
-  actionIcon,
-  actionIconClassName = "size-3.5",
-  actionLabel,
-}: ActionCardProps) => (
-  <Link
-    href={href}
-    className="flex w-full items-center gap-3 rounded-lg bg-gradient-to-r from-[#2a52a0] to-[#1e418c] p-4 text-left shadow-[0px_4px_6px_rgba(24,86,237,0.2)] transition-opacity hover:opacity-95"
-  >
-    <div className="relative size-12 shrink-0 overflow-hidden rounded-3xl">
-      <Image
-        src={assets.avatarFrame}
-        alt=""
-        fill
-        className="object-cover"
-        sizes="48px"
-      />
-    </div>
-    <div className="min-w-0 flex-1 text-[#f9fafb]">
-      <p className="text-xl font-bold">{title}</p>
-      {lines.map((line) => (
-        <p key={line} className="text-[11px] font-normal">
-          {line}
-        </p>
-      ))}
-    </div>
-    <span
-      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#0b0d12]"
-      aria-hidden
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" className={actionIconClassName} src={actionIcon} />
-    </span>
-    <span className="sr-only">{actionLabel}</span>
-  </Link>
-);
 
 const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
   <section className="flex w-full flex-col gap-2">
@@ -221,25 +179,25 @@ const MobileHomeView = ({
       <MobileAppHeader />
 
       <main className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4 [&>*]:shrink-0">
-        <ActionCard
+        <HomeActionCard
           title="相談する"
           href="/consult"
           lines={[
             "AIトレーナーとチャットでメニューや強度を相談",
             "現在のメニューを最適化しましょう",
           ]}
-          actionIcon={assets.chevronRight}
+          mobileActionIcon={assets.chevronRight}
           actionLabel="相談画面を開く"
         />
 
         <MobileGoalSection goal={goal} />
 
-        <ActionCard
+        <HomeActionCard
           title="報告する"
           href="/report"
           lines={["AIトレーナーとチャットでトレーニングを記録"]}
-          actionIcon={assets.play}
-          actionIconClassName="size-4"
+          mobileActionIcon={assets.play}
+          mobileActionIconClassName="size-4"
           actionLabel="報告画面を開く"
         />
 
@@ -259,40 +217,6 @@ const MobileHomeView = ({
 
       <AppTabBar active="home" />
     </div>
-);
-
-const DesktopActionCard = ({
-  title,
-  lines,
-  href,
-}: {
-  title: string;
-  lines: string[];
-  href: string;
-}) => (
-  <Link
-    href={href}
-    className="flex min-h-[148px] flex-1 flex-col items-start justify-center gap-[18px] rounded-xl bg-gradient-to-r from-[#2a5ab6] to-[#173b84] p-6 shadow-[0px_6px_18px_rgba(24,86,237,0.2)] transition-opacity hover:opacity-95"
-  >
-    <div className="relative size-16 overflow-hidden rounded-full">
-      <Image src={assets.avatarFrame} alt="" fill className="object-cover" sizes="64px" />
-    </div>
-    <div className="w-full text-[#f8fafc]">
-      <p className="text-2xl font-bold">{title}</p>
-      {lines.map((line) => (
-        <p key={line} className="mt-1 text-[13px] leading-[1.5]">
-          {line}
-        </p>
-      ))}
-    </div>
-    <span
-      className="flex size-[42px] items-center justify-center rounded-lg bg-[#080b10]"
-      aria-hidden
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" className="size-[18px]" src={assets.chevronRight} />
-    </span>
-  </Link>
 );
 
 const DesktopGoalPanel = ({ goal }: { goal?: GoalSummary | null }) => (
@@ -355,18 +279,23 @@ const DesktopHomeView = ({
 }) => (
   <main className="flex flex-col gap-6 p-10">
         <section className="flex gap-6">
-          <DesktopActionCard
+          <HomeActionCard
             title="相談する"
             lines={[
               "AIトレーナーとチャットでメニューや強度を相談",
               "現在のメニューを最適化しましょう",
             ]}
             href="/consult"
+            mobileActionIcon={assets.chevronRight}
+            actionLabel="相談画面を開く"
           />
-          <DesktopActionCard
+          <HomeActionCard
             title="報告する"
             lines={["AIトレーナーとチャットでトレーニングを記録"]}
             href="/report"
+            mobileActionIcon={assets.play}
+            mobileActionIconClassName="size-4"
+            actionLabel="報告画面を開く"
           />
         </section>
         <section className="flex gap-6">

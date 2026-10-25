@@ -34,9 +34,6 @@ const ProfileSummary = ({ user }: ProfileSummaryProps) => (
         {user.name}
       </h1>
       <p className="mt-1.5 text-[13px] text-[#9ca3af]">{user.trainingHistory}</p>
-      <span className="mt-1.5 inline-flex rounded-full bg-[#1856ed] px-2 py-1 text-[10px] font-bold text-[#f9fafb] min-[769px]:hidden">
-        {user.streakLabel}
-      </span>
     </div>
   </section>
 );
@@ -155,11 +152,11 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
 
   return (
     <section
-      className="flex h-full w-full flex-col overflow-hidden min-[769px]:h-auto bg-[#0b0d12] min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px] min-[769px]:rounded-none min-[769px]:bg-[#080b10]"
+      className="flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] min-[769px]:h-[calc(100dvh-32px)] min-[769px]:max-w-[1440px] min-[769px]:rounded-none min-[769px]:bg-[#080b10]"
     >
       <MobileAppHeader />
       <main
-        className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain px-5 pb-4 pt-6 min-[769px]:justify-center min-[769px]:px-5 min-[769px]:py-0"
+        className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain px-5 pb-4 pt-6 min-[769px]:px-5 min-[769px]:py-6"
       >
         <div
           className="flex w-full shrink-0 flex-col gap-5 min-[769px]:max-w-[420px] min-[769px]:gap-6"

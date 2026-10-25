@@ -36,7 +36,7 @@ export type ReportViewProps = {
   editingRecordId: string | null;
   editWeight: string;
   editReps: string;
-  chatEndRef: RefObject<HTMLDivElement | null>;
+  chatAreaRef: RefObject<HTMLDivElement | null>;
   onExerciseToggle: () => void;
   onExerciseChange: (exercise: Exercise) => void;
   onInputChange: (value: string) => void;

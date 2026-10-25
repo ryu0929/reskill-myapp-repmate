@@ -1,12 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { RefObject } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import type { TrainingRecordItem } from "@/lib/_types/training-record";
 import { EXERCISES } from "../_types/report";
@@ -21,10 +20,8 @@ import type {
 
 const assets = {
   avatar: "/assets/avatarIcon.svg",
-  aiAvatar: "/assets/consult/ai-avatar.png",
   logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
-  send: "/assets/consult/send.svg",
 } as const;
 
 
@@ -37,13 +34,6 @@ const parseTrainingRecord = (message: string): TrainingRecordDraft | null => {
 
   return weight && reps ? { weight, reps, sets } : null;
 };
-
-const formatTime = (iso: string) =>
-  new Intl.DateTimeFormat("ja-JP", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(iso));
 
 const welcomeMessage = (exercise: string): ChatMessage => ({
   id: createId(),
@@ -123,126 +113,6 @@ const ExerciseSelector = ({
       </ul>
     )}
   </div>
-);
-
-const ChatBubble = ({
-  message,
-  desktop = false,
-}: {
-  message: ChatMessage;
-  desktop?: boolean;
-}) => {
-  if (message.role === "user") {
-    return (
-      <div className="flex w-full justify-end">
-        <div
-          className={`flex flex-col gap-1 rounded-bl-[10px] rounded-br-[10px] rounded-tl-[10px] bg-[#222b3f] ${
-            desktop ? "w-full max-w-[420px] p-3.5" : "w-[75%] min-w-0 wrap-anywhere p-3"
-          }`}
-        >
-          <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
-            {message.content}
-          </p>
-          <p className="text-right font-[family-name:var(--font-urbanist)] text-[10px] text-[#9ca3af]">
-            {formatTime(message.createdAt)}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex w-full items-start gap-2.5 min-[769px]:gap-3">
-      <div className="relative size-9 shrink-0 overflow-hidden rounded-[18px]">
-        <Image src={assets.aiAvatar} alt="" fill className="object-cover" sizes="36px" />
-      </div>
-      <div
-        className={`flex flex-col gap-1 rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border bg-[linear-gradient(90deg,#16223b_0%,#0f1420_100%)] ${
-          desktop
-            ? "w-full max-w-[420px] border-[#273142] p-3.5"
-            : "w-[75%] min-w-0 wrap-anywhere border-[#242c3b] p-3"
-        }`}
-      >
-        <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
-          {message.content}
-        </p>
-        <p className="text-right font-[family-name:var(--font-urbanist)] text-[10px] text-[#9ca3af]">
-          {formatTime(message.createdAt)}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const ChatArea = ({
-  messages,
-  isSending,
-  chatEndRef,
-  desktop = false,
-}: {
-  messages: ChatMessage[];
-  isSending: boolean;
-  chatEndRef: RefObject<HTMLDivElement | null>;
-  desktop?: boolean;
-}) => (
-  <div className={`flex flex-1 flex-col gap-4 overflow-y-auto py-1 ${desktop ? "min-h-0" : "min-h-32"}`}>
-    {messages.map((message) => (
-      <ChatBubble key={message.id} message={message} desktop={desktop} />
-    ))}
-    {isSending && (
-      <div className="flex w-full items-start gap-2.5 min-[769px]:gap-3">
-        <div className="relative size-9 shrink-0 overflow-hidden rounded-[18px]">
-          <Image src={assets.aiAvatar} alt="" fill className="object-cover" sizes="36px" />
-        </div>
-        <div className="rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border border-[#273142] bg-[linear-gradient(90deg,#16223b_0%,#0f1420_100%)] px-3 py-2.5">
-          <p className="text-[13px] text-[#9ca3af]">入力中…</p>
-        </div>
-      </div>
-    )}
-    <div ref={chatEndRef} />
-  </div>
-);
-
-const ChatInput = ({
-  input,
-  isSending,
-  onChange,
-  onSubmit,
-  desktop = false,
-}: {
-  input: string;
-  isSending: boolean;
-  onChange: (value: string) => void;
-  onSubmit: (event?: FormEvent) => void;
-  desktop?: boolean;
-}) => (
-  <form
-    onSubmit={onSubmit}
-    className={`flex shrink-0 items-center gap-2 rounded-lg border bg-[#141822] ${
-      desktop
-        ? "border-[#273142] py-3 pl-4 pr-3"
-        : "border-[#242c3b] py-2 pl-3 pr-2"
-    }`}
-  >
-    <input
-      value={input}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder="メッセージを入力..."
-      className="min-w-0 flex-1 bg-transparent text-[13px] text-[#f9fafb] outline-none placeholder:text-[#9ca3af]"
-      disabled={isSending}
-    />
-    <button
-      type="submit"
-      disabled={!input.trim() || isSending}
-      className={`flex shrink-0 items-center justify-center rounded-md bg-[#1856ed] disabled:opacity-50 ${
-        desktop ? "size-8" : "size-7"
-      }`}
-      aria-label="送信"
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" className="size-3.5" src={assets.send} />
-    </button>
-  </form>
 );
 
 const RecordDraftCard = ({
@@ -494,7 +364,7 @@ const MobileReportView = ({
   editingRecordId,
   editWeight,
   editReps,
-  chatEndRef,
+  chatAreaRef,
   onExerciseToggle,
   onExerciseChange,
   onInputChange,
@@ -533,7 +403,7 @@ const MobileReportView = ({
         <span className="text-xs font-bold text-[#f8fafc]">本日の記録</span>
         <span className="text-[11px] font-bold text-[#5b8cff]">{records.length}セット</span>
       </button>
-      <ChatArea messages={messages} isSending={isSending} chatEndRef={chatEndRef} />
+      <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} />
       {recordDraft && (
         <RecordDraftCard
           draft={recordDraft}
@@ -543,7 +413,7 @@ const MobileReportView = ({
           onCancel={onCancelRecord}
         />
       )}
-      <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
+      <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
     </main>
 
     <div
@@ -605,7 +475,7 @@ const DesktopReportView = ({
   editingRecordId,
   editWeight,
   editReps,
-  chatEndRef,
+  chatAreaRef,
   onExerciseToggle,
   onExerciseChange,
   onInputChange,
@@ -630,7 +500,7 @@ const DesktopReportView = ({
             onChange={onExerciseChange}
             desktop
           />
-          <ChatArea messages={messages} isSending={isSending} chatEndRef={chatEndRef} desktop />
+          <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} desktop />
         </div>
         <div className="flex w-full max-w-[720px] flex-col gap-3">
           {recordDraft && (
@@ -642,7 +512,7 @@ const DesktopReportView = ({
               onCancel={onCancelRecord}
             />
           )}
-          <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
+          <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
         </div>
       </section>
       <ReportSidePanel
@@ -659,7 +529,7 @@ const DesktopReportView = ({
         editingRecordId={editingRecordId}
         editWeight={editWeight}
         editReps={editReps}
-        chatEndRef={chatEndRef}
+        chatAreaRef={chatAreaRef}
         onExerciseToggle={onExerciseToggle}
         onExerciseChange={onExerciseChange}
         onInputChange={onInputChange}
@@ -697,8 +567,8 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   const [editWeight, setEditWeight] = useState("");
   const [editReps, setEditReps] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const mobileChatEndRef = useRef<HTMLDivElement>(null);
-  const desktopChatEndRef = useRef<HTMLDivElement>(null);
+  const mobileChatAreaRef = useRef<HTMLDivElement>(null);
+  const desktopChatAreaRef = useRef<HTMLDivElement>(null);
 
   const apiMessages = useMemo(
     () => messages.map(({ role, content }) => ({ role, content })),
@@ -727,8 +597,12 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   }, [fetchRecords]);
 
   useEffect(() => {
-    mobileChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    desktopChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const scrollChatToBottom = (element: HTMLDivElement | null) => {
+      element?.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+    };
+
+    scrollChatToBottom(mobileChatAreaRef.current);
+    scrollChatToBottom(desktopChatAreaRef.current);
   }, [messages, isSending]);
 
   useEffect(() => {
@@ -931,7 +805,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     }
   };
 
-  const viewProps: Omit<ReportViewProps, "chatEndRef"> = {
+  const viewProps: Omit<ReportViewProps, "chatAreaRef"> = {
     goal,
     exercise,
     messages,
@@ -966,8 +840,8 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     <>
       <ResponsiveScreen
         userName={userName}
-        mobile={<MobileReportView {...viewProps} chatEndRef={mobileChatEndRef} />}
-        desktop={<DesktopReportView {...viewProps} chatEndRef={desktopChatEndRef} />}
+        mobile={<MobileReportView {...viewProps} chatAreaRef={mobileChatAreaRef} />}
+        desktop={<DesktopReportView {...viewProps} chatAreaRef={desktopChatAreaRef} />}
       />
       <div
         role="status"

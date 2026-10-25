@@ -51,7 +51,7 @@ const getDesktopPageMeta = (pathname: string) =>
 const HeaderLogo = () => (
   <Link
     href="/"
-    className="flex w-fit items-center gap-2 transition-opacity hover:opacity-90"
+    className="flex w-fit self-center items-center gap-2 transition-opacity hover:opacity-90"
     aria-label="ホームへ戻る"
   >
     <div className="relative h-9 w-[84px] shrink-0">
@@ -78,7 +78,7 @@ const DesktopNavItem = ({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img alt="" className="size-5" src={icon} />
     </span>
-    <span className="font-[family-name:var(--font-urbanist)] text-xs font-semibold">
+    <span className="font-[family-name:var(--font-urbanist)] text-xs font-semibold tracking-wide">
       {label}
     </span>
   </Link>
@@ -131,13 +131,6 @@ const DesktopHeader = ({
       <p className="mt-1 text-[13px] text-[#98a2b3]">{subtitle}</p>
     </div>
     <div className="flex items-center gap-3">
-      <button
-        type="button"
-        className="flex size-10 items-center justify-center rounded-lg bg-[#161c27] text-[#98a2b3] transition-colors hover:text-[#f8fafc]"
-        aria-label="通知"
-      >
-        <span className="text-lg leading-none">!</span>
-      </button>
       <Link
         href="/mypage"
         className="relative size-10 overflow-hidden rounded-full transition-opacity hover:opacity-90"

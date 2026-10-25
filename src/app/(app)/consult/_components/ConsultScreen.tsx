@@ -1,12 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import type { RefObject } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/consult";
 import type {
@@ -19,11 +18,8 @@ import type {
 
 const assets = {
   avatar: "/assets/avatarIcon.svg",
-  aiAvatar: "/assets/consult/ai-avatar.png",
-  aiAvatarAlt: "/assets/consult/ai-avatar-alt.png",
   logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
-  send: "/assets/consult/send.svg",
   plusCircle: "/assets/consult/plus-circle.svg",
 } as const;
 
@@ -33,13 +29,6 @@ const createId = () => crypto.randomUUID();
 const wait = (duration: number) => (
   new Promise<void>((resolve) => window.setTimeout(resolve, duration))
 );
-
-const formatTime = (iso: string) =>
-  new Intl.DateTimeFormat("ja-JP", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(iso));
 
 const welcomeMessage = (exercise: string): ChatMessage => ({
   id: createId(),
@@ -94,134 +83,6 @@ const ExerciseSelector = ({
       </ul>
     )}
   </div>
-);
-
-const ChatBubble = ({
-  message,
-  index,
-  desktop = false,
-}: {
-  message: ChatMessage;
-  index: number;
-  desktop?: boolean;
-}) => {
-  if (message.role === "user") {
-    return (
-      <div className="flex w-full justify-end">
-        <div
-          className={`rounded-bl-[10px] rounded-br-[10px] rounded-tl-[10px] bg-[#222b3f] ${
-            desktop ? "w-full max-w-[420px] p-3.5" : "w-[75%] min-w-0 wrap-anywhere p-3"
-          }`}
-        >
-          <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
-            {message.content}
-          </p>
-          <p className="mt-1 text-right font-[family-name:var(--font-urbanist)] text-[10px] text-[#9ca3af]">
-            {formatTime(message.createdAt)}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const avatar = index % 2 === 0 ? assets.aiAvatar : assets.aiAvatarAlt;
-
-  return (
-    <div className="flex w-full gap-2.5 min-[769px]:gap-3">
-      <div className="relative size-9 shrink-0 overflow-hidden rounded-[18px]">
-        <Image src={avatar} alt="" fill className="object-cover" sizes="36px" />
-      </div>
-      <div
-        className={`rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border bg-gradient-to-r from-[#16223b] to-[#0f1420] ${
-          desktop
-            ? "w-full max-w-[420px] border-[#273142] p-3.5"
-            : "w-[75%] min-w-0 wrap-anywhere border-[#242c3b] p-3"
-        }`}
-      >
-        <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
-          {message.content}
-        </p>
-        <p className="mt-1 text-right font-[family-name:var(--font-urbanist)] text-[10px] text-[#9ca3af]">
-          {formatTime(message.createdAt)}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const ChatArea = ({
-  messages,
-  isSending,
-  chatAreaRef,
-  desktop = false,
-}: {
-  messages: ChatMessage[];
-  isSending: boolean;
-  chatAreaRef: RefObject<HTMLDivElement | null>;
-  desktop?: boolean;
-}) => (
-  <div
-    ref={chatAreaRef}
-    className={`flex min-h-0 flex-1 flex-col overflow-y-auto ${
-      desktop ? "gap-4 py-1" : "min-h-32 gap-4 py-1"
-    }`}
-  >
-    {messages.map((message, index) => (
-      <ChatBubble key={message.id} message={message} index={index} desktop={desktop} />
-    ))}
-    {isSending && (
-      <div className="flex gap-2.5 min-[769px]:gap-3">
-        <div className="relative size-9 shrink-0 overflow-hidden rounded-[18px]">
-          <Image src={assets.aiAvatarAlt} alt="" fill className="object-cover" sizes="36px" />
-        </div>
-        <div className="rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border border-[#273142] bg-gradient-to-r from-[#16223b] to-[#0f1420] px-3 py-2.5">
-          <p className="text-[13px] text-[#9ca3af]">入力中…</p>
-        </div>
-      </div>
-    )}
-  </div>
-);
-
-const ChatInput = ({
-  input,
-  isSending,
-  onChange,
-  onSubmit,
-  desktop = false,
-}: {
-  input: string;
-  isSending: boolean;
-  onChange: (value: string) => void;
-  onSubmit: (event?: FormEvent) => void;
-  desktop?: boolean;
-}) => (
-  <form
-    onSubmit={onSubmit}
-    className={`flex shrink-0 items-center gap-2 rounded-lg border bg-[#141822] ${
-      desktop
-        ? "border-[#273142] py-3 pl-4 pr-3"
-        : "border-[#242c3b] py-2 pl-3 pr-2"
-    }`}
-  >
-    <input
-      value={input}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder="メッセージを入力..."
-      className="min-w-0 flex-1 bg-transparent text-[13px] text-[#f9fafb] outline-none placeholder:text-[#9ca3af]"
-      disabled={isSending}
-    />
-    <button
-      type="submit"
-      disabled={!input.trim() || isSending}
-      className={`flex shrink-0 items-center justify-center rounded-md bg-[#1856ed] disabled:opacity-50 ${
-        desktop ? "size-8" : "size-7"
-      }`}
-      aria-label="送信"
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" className="size-3.5" src={assets.send} />
-    </button>
-  </form>
 );
 
 const GoalProposalCard = ({
@@ -546,8 +407,8 @@ const MobileConsultView = ({
           onToggle={onExerciseToggle}
           onChange={onExerciseChange}
         />
-        <ChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} />
-        <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
+        <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} />
+        <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
         <button
           type="button"
           onClick={onGenerateGoals}
@@ -671,9 +532,9 @@ const DesktopConsultView = ({
             onChange={onExerciseChange}
             desktop
           />
-          <ChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} desktop />
+          <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} desktop />
         </div>
-        <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
+        <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
       </section>
       <GoalPanel
         exercise={exercise}

@@ -20,11 +20,11 @@ export type FitnessAppHomeProps = {
   userName?: string;
 };
 
-export type ActionCardProps = {
+export type HomeActionCardProps = {
   title: string;
   href: string;
   lines: string[];
-  actionIcon: string;
-  actionIconClassName?: string;
+  mobileActionIcon: string;
+  mobileActionIconClassName?: string;
   actionLabel: string;
 };
