@@ -29,7 +29,7 @@ export type ConsultViewProps = {
   input: string;
   isSending: boolean;
   showExercisePicker: boolean;
-  chatEndRef: RefObject<HTMLDivElement | null>;
+  chatAreaRef: RefObject<HTMLDivElement | null>;
   goal?: GoalSummary | null;
   proposals: GoalProposal[];
   selectedProposalId: string | null;

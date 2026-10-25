@@ -152,15 +152,16 @@ const ChatBubble = ({
 const ChatArea = ({
   messages,
   isSending,
-  chatEndRef,
+  chatAreaRef,
   desktop = false,
 }: {
   messages: ChatMessage[];
   isSending: boolean;
-  chatEndRef: RefObject<HTMLDivElement | null>;
+  chatAreaRef: RefObject<HTMLDivElement | null>;
   desktop?: boolean;
 }) => (
   <div
+    ref={chatAreaRef}
     className={`flex min-h-0 flex-1 flex-col overflow-y-auto ${
       desktop ? "gap-4 py-1" : "min-h-32 gap-4 py-1"
     }`}
@@ -178,7 +179,6 @@ const ChatArea = ({
         </div>
       </div>
     )}
-    <div ref={chatEndRef} />
   </div>
 );
 
@@ -285,6 +285,69 @@ const GoalChangeActions = ({
       もう一度相談する
     </button>
   </div>
+);
+
+const CurrentGoalSummary = ({ goal }: { goal: GoalSummary }) => (
+  <section className="w-full shrink-0 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="size-2 shrink-0 rounded-full bg-[#10b981]" aria-hidden />
+        <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
+      </div>
+      <span className="shrink-0 text-[11px] font-bold text-[#10b981]">
+        {goal.statusLabel}
+      </span>
+    </div>
+    <p className="mt-3 text-[13px] leading-[1.4] text-[#9ca3af]">
+      <span className="font-bold text-[#f8fafc]">{goal.name}</span>
+      <span aria-hidden> — </span>
+      {goal.description}
+    </p>
+  </section>
+);
+
+const ConfiguredGoalView = ({
+  goal,
+  onChangeGoal,
+  onRestartConsultation,
+  desktop = false,
+}: {
+  goal: GoalSummary;
+  onChangeGoal: () => void;
+  onRestartConsultation: () => void;
+  desktop?: boolean;
+}) => (
+  <section
+    className={`flex min-h-0 flex-1 flex-col items-center justify-center ${
+      desktop ? "px-10 py-8" : "overflow-y-auto px-5 pb-5 pt-1"
+    }`}
+  >
+    <div className="flex w-full max-w-[640px] flex-col gap-5">
+      <div>
+        <p className="text-xs font-bold text-[#98a2b3]">設定中の目標</p>
+        <h2 className="mt-1 text-xl font-bold text-[#f8fafc]">今日の目標</h2>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-xl border border-[#273142] bg-[linear-gradient(164deg,#161c27_25%,#0b0d12_75%)] p-5 min-[769px]:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-[#10b981]" aria-hidden />
+            <h3 className="text-base font-bold text-[#f8fafc]">{goal.name}</h3>
+          </div>
+          <span className="shrink-0 rounded-md bg-[rgba(16,185,129,0.13)] px-2 py-1 text-[11px] font-bold text-[#10b981]">
+            {goal.statusLabel}
+          </span>
+        </div>
+        <p className="text-sm leading-[1.7] text-[#98a2b3]">{goal.description}</p>
+      </div>
+
+      <GoalChangeActions
+        onChangeGoal={onChangeGoal}
+        onRestartConsultation={onRestartConsultation}
+        compact={!desktop}
+      />
+    </div>
+  </section>
 );
 
 const GoalComposerContent = ({
@@ -450,7 +513,7 @@ const MobileConsultView = ({
   isReconsulting,
   isGoalComposerOpen,
   canGenerateGoals,
-  chatEndRef,
+  chatAreaRef,
   onExerciseToggle,
   onExerciseChange,
   onInputChange,
@@ -468,22 +531,23 @@ const MobileConsultView = ({
   >
     <MobileAppHeader />
 
-    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 pb-3 pt-1">
-      <ExerciseSelector
-        exercise={exercise}
-        isOpen={showExercisePicker}
-        onToggle={onExerciseToggle}
-        onChange={onExerciseChange}
+    {goal && !isReconsulting && proposals.length === 0 && !isGeneratingGoals ? (
+      <ConfiguredGoalView
+        goal={goal}
+        onChangeGoal={onChangeGoal}
+        onRestartConsultation={onRestartConsultation}
       />
-      <ChatArea messages={messages} isSending={isSending} chatEndRef={chatEndRef} />
-      <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
-      {goal && !isReconsulting ? (
-        <GoalChangeActions
-          onChangeGoal={onChangeGoal}
-          onRestartConsultation={onRestartConsultation}
-          compact
+    ) : (
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 pb-3 pt-1">
+        {goal && isReconsulting && <CurrentGoalSummary goal={goal} />}
+        <ExerciseSelector
+          exercise={exercise}
+          isOpen={showExercisePicker}
+          onToggle={onExerciseToggle}
+          onChange={onExerciseChange}
         />
-      ) : (
+        <ChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} />
+        <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
         <button
           type="button"
           onClick={onGenerateGoals}
@@ -502,8 +566,8 @@ const MobileConsultView = ({
                 : "AIと1往復以上相談してください"}
           </span>
         </button>
-      )}
-    </div>
+      </div>
+    )}
 
     <div
       className={`absolute inset-0 z-20 bg-black/40 transition-opacity duration-200 ${
@@ -556,7 +620,7 @@ const DesktopConsultView = ({
   input,
   isSending,
   showExercisePicker,
-  chatEndRef,
+  chatAreaRef,
   goal,
   proposals,
   selectedProposalId,
@@ -576,10 +640,30 @@ const DesktopConsultView = ({
   onChangeGoal,
   onRestartConsultation,
   onCloseGoalComposer,
-}: ConsultViewProps) => (
-  <main className="flex min-h-0 flex-1">
+}: ConsultViewProps) => {
+  const showGoalOverview = Boolean(goal)
+    && !isReconsulting
+    && proposals.length === 0
+    && !isGeneratingGoals;
+
+  if (goal && showGoalOverview) {
+    return (
+      <main className="flex min-h-0 flex-1">
+        <ConfiguredGoalView
+          goal={goal}
+          onChangeGoal={onChangeGoal}
+          onRestartConsultation={onRestartConsultation}
+          desktop
+        />
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex min-h-0 flex-1">
       <section className="flex min-w-0 flex-1 flex-col justify-between px-10 py-6">
         <div className="flex min-h-0 flex-1 flex-col gap-5">
+          {goal && isReconsulting && <CurrentGoalSummary goal={goal} />}
           <ExerciseSelector
             exercise={exercise}
             isOpen={showExercisePicker}
@@ -587,7 +671,7 @@ const DesktopConsultView = ({
             onChange={onExerciseChange}
             desktop
           />
-          <ChatArea messages={messages} isSending={isSending} chatEndRef={chatEndRef} desktop />
+          <ChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} desktop />
         </div>
         <ChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
       </section>
@@ -597,7 +681,7 @@ const DesktopConsultView = ({
         input={input}
         isSending={isSending}
         showExercisePicker={showExercisePicker}
-        chatEndRef={chatEndRef}
+        chatAreaRef={chatAreaRef}
         goal={goal}
         proposals={proposals}
         selectedProposalId={selectedProposalId}
@@ -619,7 +703,8 @@ const DesktopConsultView = ({
         onCloseGoalComposer={onCloseGoalComposer}
       />
     </main>
-);
+  );
+};
 
 export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => {
   const router = useRouter();
@@ -638,8 +723,8 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
   const [isGoalComposerOpen, setIsGoalComposerOpen] = useState(false);
   const [completedTurns, setCompletedTurns] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const mobileChatEndRef = useRef<HTMLDivElement>(null);
-  const desktopChatEndRef = useRef<HTMLDivElement>(null);
+  const mobileChatAreaRef = useRef<HTMLDivElement>(null);
+  const desktopChatAreaRef = useRef<HTMLDivElement>(null);
 
   const apiMessages = useMemo(
     () => messages.map(({ role, content }) => ({ role, content })),
@@ -647,8 +732,12 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
   );
 
   useEffect(() => {
-    mobileChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    desktopChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const scrollChatToBottom = (element: HTMLDivElement | null) => {
+      element?.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+    };
+
+    scrollChatToBottom(mobileChatAreaRef.current);
+    scrollChatToBottom(desktopChatAreaRef.current);
   }, [messages, isSending]);
 
   useEffect(() => {
@@ -868,7 +957,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
 
   const canGenerateGoals = completedTurns >= 1 && !isSending;
 
-  const viewProps: Omit<ConsultViewProps, "chatEndRef"> = {
+  const viewProps: Omit<ConsultViewProps, "chatAreaRef"> = {
     exercise,
     messages,
     input,
@@ -899,8 +988,8 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     <>
       <ResponsiveScreen
         userName={userName}
-        mobile={<MobileConsultView {...viewProps} chatEndRef={mobileChatEndRef} />}
-        desktop={<DesktopConsultView {...viewProps} chatEndRef={desktopChatEndRef} />}
+        mobile={<MobileConsultView {...viewProps} chatAreaRef={mobileChatAreaRef} />}
+        desktop={<DesktopConsultView {...viewProps} chatAreaRef={desktopChatAreaRef} />}
       />
       <div
         role="status"
