@@ -10,7 +10,6 @@ import { profileSchema } from "../_schemas/profile";
 import type { ProfileFormValues } from "../_schemas/profile";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { NextResponse } from "next/server";
 
 
 // const defaultUser: UserProfile = {
@@ -84,7 +83,7 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState("");
   const editButtonRef = useRef<HTMLButtonElement>(null);
-  const { register, control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
+  const { register, control, handleSubmit, reset, formState: { errors, isDirty, isSubmitting } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user.name,
@@ -97,6 +96,13 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
 
   const completeEditing = async (values: ProfileFormValues) => {
       if(!editing) return;
+
+      if (!isDirty) {
+        setNotice("");
+        setEditing(false);
+        editButtonRef.current?.focus();
+        return;
+      }
 
       try {
         const response = await fetch("api/profile", {
@@ -128,12 +134,7 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
           confirmation: "",
         });
 
-        // 今回は通信確認のみ。DBにはまだ保存されない
-        setNotice(
-          result.passwordUpdated
-          ? "名前・性別とパスワードを更新しました。"
-          : "名前と性別を更新しました。"
-        );
+        setNotice("");
 
         // 編集モードを終了
         setEditing(false);
