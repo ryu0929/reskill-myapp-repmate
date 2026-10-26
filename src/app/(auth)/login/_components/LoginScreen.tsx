@@ -109,12 +109,12 @@ const LoginForm = () => {
         error={errors.password?.message}
       />
 
-      <Link
+      {/* <Link
         href="#"
         className="text-right text-xs font-medium text-[#1856ed] transition-opacity hover:opacity-80"
       >
         パスワードを忘れた方
-      </Link>
+      </Link> */}
 
       {serverError && (
         <p role="alert" className="text-sm text-red-400">
