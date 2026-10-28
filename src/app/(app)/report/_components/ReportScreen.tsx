@@ -11,9 +11,12 @@ import type { TrainingRecordItem } from "@/lib/_types/training-record";
 import { EXERCISES } from "../_types/report";
 import type {
   Exercise,
+  ExerciseSelectorProps,
   GoalSummary,
+  RecordDraftCardProps,
   ReportScreenProps,
   ReportViewProps,
+  TrainingRecordListProps,
   TrainingRecordDraft,
 } from "../_types/report";
 
@@ -75,13 +78,7 @@ const ExerciseSelector = ({
   onToggle,
   onChange,
   desktop = false,
-}: {
-  exercise: Exercise;
-  isOpen: boolean;
-  onToggle: () => void;
-  onChange: (exercise: Exercise) => void;
-  desktop?: boolean;
-}) => (
+}: ExerciseSelectorProps) => (
   <div className="relative w-full shrink-0">
     <button
       type="button"
@@ -121,13 +118,7 @@ const RecordDraftCard = ({
   onChange,
   onSave,
   onCancel,
-}: {
-  draft: TrainingRecordDraft;
-  isSaving: boolean;
-  onChange: (field: keyof TrainingRecordDraft, value: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-}) => (
+}: RecordDraftCardProps) => (
   <section className="shrink-0 rounded-lg border border-[#2463eb] bg-[#111827] p-3.5">
     <div className="flex items-center justify-between gap-3">
       <h2 className="text-sm font-bold text-[#f8fafc]">記録内容を確認</h2>
@@ -188,20 +179,7 @@ const TrainingRecordList = ({
   onSaveEdit,
   onCancelEdit,
   onDelete,
-}: Pick<
-  ReportViewProps,
-  | "records"
-  | "editingRecordId"
-  | "editWeight"
-  | "editReps"
-  | "onEditWeightChange"
-  | "onEditRepsChange"
-> & {
-  onStartEdit: (record: TrainingRecordItem) => void;
-  onSaveEdit: () => void;
-  onCancelEdit: () => void;
-  onDelete: (recordId: string) => void;
-}) => {
+}: TrainingRecordListProps) => {
   if (records.length === 0) {
     return (
       <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">

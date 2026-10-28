@@ -9,10 +9,15 @@ import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/consult";
 import type {
+  ConfiguredGoalViewProps,
   ConsultScreenProps,
   ConsultViewProps,
   Exercise,
+  ExerciseSelectorProps,
+  GoalChangeActionsProps,
+  GoalComposerContentProps,
   GoalProposal,
+  GoalProposalCardProps,
   GoalSummary,
 } from "../_types/consult";
 
@@ -43,13 +48,7 @@ const ExerciseSelector = ({
   onToggle,
   onChange,
   desktop = false,
-}: {
-  exercise: Exercise;
-  isOpen: boolean;
-  onToggle: () => void;
-  onChange: (exercise: Exercise) => void;
-  desktop?: boolean;
-}) => (
+}: ExerciseSelectorProps) => (
   <div className="relative shrink-0">
     <button
       type="button"
@@ -89,18 +88,14 @@ const GoalProposalCard = ({
   proposal,
   selected,
   onSelect,
-}: {
-  proposal: GoalProposal;
-  selected: boolean;
-  onSelect: () => void;
-}) => (
+}: GoalProposalCardProps) => (
   <button
     type="button"
     onClick={onSelect}
     aria-pressed={selected}
-    className={`w-full rounded-lg border p-4 text-left transition-[border-color,background-color,transform] duration-200 ${
+    className={`w-full rounded-lg border p-4 text-left transition-colors duration-200 ${
       selected
-        ? "scale-[1.01] border-[#2463eb] bg-[#17213a]"
+        ? "border-[#2463eb] bg-[#17213a]"
         : "border-[#273142] bg-[#141822] hover:border-[#384866]"
     }`}
   >
@@ -125,11 +120,7 @@ const GoalChangeActions = ({
   onChangeGoal,
   onRestartConsultation,
   compact = false,
-}: {
-  onChangeGoal: () => void;
-  onRestartConsultation: () => void;
-  compact?: boolean;
-}) => (
+}: GoalChangeActionsProps) => (
   <div className={compact ? "grid shrink-0 grid-cols-2 gap-2" : "flex flex-col gap-2"}>
     <button
       type="button"
@@ -172,12 +163,7 @@ const ConfiguredGoalView = ({
   onChangeGoal,
   onRestartConsultation,
   desktop = false,
-}: {
-  goal: GoalSummary;
-  onChangeGoal: () => void;
-  onRestartConsultation: () => void;
-  desktop?: boolean;
-}) => (
+}: ConfiguredGoalViewProps) => (
   <section
     className={`flex min-h-0 flex-1 flex-col items-center justify-center ${
       desktop ? "px-10 py-8" : "overflow-y-auto px-5 pb-5 pt-1"
@@ -225,22 +211,7 @@ const GoalComposerContent = ({
   onSaveGoal,
   onChangeGoal,
   onRestartConsultation,
-}: Pick<
-  ConsultViewProps,
-  | "goal"
-  | "proposals"
-  | "selectedProposalId"
-  | "isGeneratingGoals"
-  | "isSavingGoal"
-  | "isChangingGoal"
-  | "isReconsulting"
-  | "canGenerateGoals"
-  | "onGenerateGoals"
-  | "onSelectGoal"
-  | "onSaveGoal"
-  | "onChangeGoal"
-  | "onRestartConsultation"
->) => {
+}: GoalComposerContentProps) => {
   const hasProposals = proposals.length > 0;
 
   return (

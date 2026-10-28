@@ -6,7 +6,16 @@ import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import { EXERCISES } from "../_types/progress";
-import type { ChartPoint, Exercise, PersonalBest, ProgressData, ProgressScreenProps } from "../_types/progress";
+import type {
+  ChartPoint,
+  Exercise,
+  ExerciseSelectorProps,
+  OneRepMaxCardProps,
+  PersonalBest,
+  ProgressData,
+  ProgressScreenProps,
+  ProgressViewProps,
+} from "../_types/progress";
 
 
 const assets = {
@@ -43,13 +52,7 @@ const ExerciseSelector = ({
   onToggle,
   onChange,
   desktop = false,
-}: {
-  exercise: Exercise;
-  isOpen: boolean;
-  onToggle: () => void;
-  onChange: (exercise: Exercise) => void;
-  desktop?: boolean;
-}) => (
+}: ExerciseSelectorProps) => (
   <div className="relative w-full shrink-0">
     <button
       type="button"
@@ -87,11 +90,7 @@ const OneRepMaxCard = ({
   estimatedOneRepMax,
   trendRate,
   desktop = false,
-}: {
-  estimatedOneRepMax: number;
-  trendRate: number;
-  desktop?: boolean;
-}) => (
+}: OneRepMaxCardProps) => (
   <section
     className={`w-full shrink-0 border bg-gradient-to-r from-[#141822] to-[#0b0d12] ${
       desktop
@@ -274,13 +273,7 @@ const MobileProgressView = ({
   showExercisePicker,
   onExerciseToggle,
   onExerciseChange,
-}: {
-  data: ProgressData;
-  exercise: Exercise;
-  showExercisePicker: boolean;
-  onExerciseToggle: () => void;
-  onExerciseChange: (exercise: Exercise) => void;
-}) => (
+}: ProgressViewProps) => (
   <div
     className="mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/progress"
@@ -308,13 +301,7 @@ const DesktopProgressView = ({
   showExercisePicker,
   onExerciseToggle,
   onExerciseChange,
-}: {
-  data: ProgressData;
-  exercise: Exercise;
-  showExercisePicker: boolean;
-  onExerciseToggle: () => void;
-  onExerciseChange: (exercise: Exercise) => void;
-}) => (
+}: ProgressViewProps) => (
   <main className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-10">
       <ExerciseSelector
         exercise={exercise}

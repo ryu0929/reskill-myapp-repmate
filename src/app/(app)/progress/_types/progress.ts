@@ -28,3 +28,25 @@ export type ProgressScreenProps = {
   dataByExercise?: Record<Exercise, ProgressData>;
   userName?: string;
 };
+
+export type ExerciseSelectorProps = {
+  exercise: Exercise;
+  isOpen: boolean;
+  onToggle: () => void;
+  onChange: (exercise: Exercise) => void;
+  desktop?: boolean;
+};
+
+export type OneRepMaxCardProps = {
+  estimatedOneRepMax: number;
+  trendRate: number;
+  desktop?: boolean;
+};
+
+export type ProgressViewProps = {
+  data: ProgressData;
+  exercise: Exercise;
+  showExercisePicker: boolean;
+  onExerciseToggle: () => void;
+  onExerciseChange: (exercise: Exercise) => void;
+};

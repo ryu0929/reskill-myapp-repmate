@@ -22,6 +22,22 @@ export type TrainingRecordDraft = {
   sets: string;
 };
 
+export type ExerciseSelectorProps = {
+  exercise: Exercise;
+  isOpen: boolean;
+  onToggle: () => void;
+  onChange: (exercise: Exercise) => void;
+  desktop?: boolean;
+};
+
+export type RecordDraftCardProps = {
+  draft: TrainingRecordDraft;
+  isSaving: boolean;
+  onChange: (field: keyof TrainingRecordDraft, value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+};
+
 export type ReportViewProps = {
   goal?: GoalSummary | null;
   exercise: Exercise;
@@ -52,4 +68,19 @@ export type ReportViewProps = {
   onCancelRecordEdit: () => void;
   onDeleteRecord: (recordId: string) => void;
   onSubmit: (event?: FormEvent) => void;
+};
+
+export type TrainingRecordListProps = Pick<
+  ReportViewProps,
+  | "records"
+  | "editingRecordId"
+  | "editWeight"
+  | "editReps"
+  | "onEditWeightChange"
+  | "onEditRepsChange"
+> & {
+  onStartEdit: (record: TrainingRecordItem) => void;
+  onSaveEdit: () => void;
+  onCancelEdit: () => void;
+  onDelete: (recordId: string) => void;
 };

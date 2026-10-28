@@ -23,6 +23,33 @@ export type ConsultScreenProps = {
   userName?: string;
 };
 
+export type ExerciseSelectorProps = {
+  exercise: Exercise;
+  isOpen: boolean;
+  onToggle: () => void;
+  onChange: (exercise: Exercise) => void;
+  desktop?: boolean;
+};
+
+export type GoalProposalCardProps = {
+  proposal: GoalProposal;
+  selected: boolean;
+  onSelect: () => void;
+};
+
+export type GoalChangeActionsProps = {
+  onChangeGoal: () => void;
+  onRestartConsultation: () => void;
+  compact?: boolean;
+};
+
+export type ConfiguredGoalViewProps = {
+  goal: GoalSummary;
+  onChangeGoal: () => void;
+  onRestartConsultation: () => void;
+  desktop?: boolean;
+};
+
 export type ConsultViewProps = {
   exercise: Exercise;
   messages: ChatMessage[];
@@ -50,3 +77,20 @@ export type ConsultViewProps = {
   onRestartConsultation: () => void;
   onCloseGoalComposer: () => void;
 };
+
+export type GoalComposerContentProps = Pick<
+  ConsultViewProps,
+  | "goal"
+  | "proposals"
+  | "selectedProposalId"
+  | "isGeneratingGoals"
+  | "isSavingGoal"
+  | "isChangingGoal"
+  | "isReconsulting"
+  | "canGenerateGoals"
+  | "onGenerateGoals"
+  | "onSelectGoal"
+  | "onSaveGoal"
+  | "onChangeGoal"
+  | "onRestartConsultation"
+>;
