@@ -4,7 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppUser } from "@/components/AppUserProvider";
-import type { AppDesktopLayoutProps, DesktopHeaderProps, DesktopNavigationItem, DesktopNavItemProps, DesktopPageMeta, DesktopSidebarProps } from "@/components/_types/app-desktop-layout";
+import type {
+  AppDesktopLayoutProps,
+  DesktopHeaderProps,
+  DesktopNavigationItem,
+  DesktopNavItemProps,
+  DesktopPageMeta,
+  DesktopSidebarProps,
+} from "@/components/_types/app-desktop-layout";
 
 const assets = {
   avatar: "/assets/avatarIcon.svg",
@@ -17,9 +24,19 @@ const assets = {
 
 const navigationItems: DesktopNavigationItem[] = [
   { label: "HOME", href: "/", icon: assets.tabHome, id: "home" },
-  { label: "CONSULT", href: "/consult", icon: assets.tabConsult, id: "consult" },
+  {
+    label: "CONSULT",
+    href: "/consult",
+    icon: assets.tabConsult,
+    id: "consult",
+  },
   { label: "REPORT", href: "/report", icon: assets.tabReport, id: "report" },
-  { label: "PROGRESS", href: "/progress", icon: assets.tabProgress, id: "progress" },
+  {
+    label: "PROGRESS",
+    href: "/progress",
+    icon: assets.tabProgress,
+    id: "progress",
+  },
 ];
 
 const desktopPageMeta: Record<string, DesktopPageMeta> = {
@@ -56,21 +73,22 @@ const HeaderLogo = () => (
   >
     <div className="relative h-9 w-[84px] shrink-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
+      <img
+        alt="RepMate"
+        className="block size-full max-w-none"
+        src={assets.logo}
+      />
     </div>
   </Link>
 );
 
-const DesktopNavItem = ({
-  label,
-  href,
-  icon,
-  active,
-}: DesktopNavItemProps) => (
+const DesktopNavItem = ({ label, href, icon, active }: DesktopNavItemProps) => (
   <Link
     href={href}
     className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-3 transition-colors ${
-      active ? "bg-[#1d3f83] text-[#f8fafc]" : "text-[#98a2b3] hover:bg-[#161c27]"
+      active
+        ? "bg-[#1d3f83] text-[#f8fafc]"
+        : "text-[#98a2b3] hover:bg-[#161c27]"
     }`}
     aria-current={active ? "page" : undefined}
   >
@@ -90,7 +108,11 @@ const DesktopSidebar = ({ active, userName }: DesktopSidebarProps) => (
       <HeaderLogo />
       <nav className="flex flex-col gap-2" aria-label="メイン">
         {navigationItems.map((item) => (
-          <DesktopNavItem key={item.href} {...item} active={item.id === active} />
+          <DesktopNavItem
+            key={item.href}
+            {...item}
+            active={item.id === active}
+          />
         ))}
       </nav>
     </div>
@@ -101,10 +123,18 @@ const DesktopSidebar = ({ active, userName }: DesktopSidebarProps) => (
       aria-label="マイページ"
     >
       <div className="relative size-9 overflow-hidden rounded-full">
-        <Image src={assets.avatar} alt="" fill className="object-cover" sizes="36px" />
+        <Image
+          src={assets.avatar}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="36px"
+        />
       </div>
       <div>
-        <p className="max-w-[11em] truncate text-[13px] font-bold text-[#f8fafc]">{userName}</p>
+        <p className="max-w-[11em] truncate text-[13px] font-bold text-[#f8fafc]">
+          {userName}
+        </p>
         <p className="text-[11px] text-[#98a2b3]">トレーニング中</p>
       </div>
     </Link>
@@ -122,7 +152,9 @@ const DesktopHeader = ({
       {active === "home" ? (
         <h1 className="flex min-w-0 items-baseline text-2xl font-bold text-[#f8fafc]">
           <span className="shrink-0">おかえりなさい、</span>
-          <span className="inline-block max-w-[11em] truncate align-bottom">{userName}</span>
+          <span className="inline-block max-w-[11em] truncate align-bottom">
+            {userName}
+          </span>
           <span className="shrink-0">さん</span>
         </h1>
       ) : (
@@ -136,7 +168,13 @@ const DesktopHeader = ({
         className="relative size-10 overflow-hidden rounded-full transition-opacity hover:opacity-90"
         aria-label="マイページ"
       >
-        <Image src={assets.avatar} alt="" fill className="object-cover" sizes="40px" />
+        <Image
+          src={assets.avatar}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="40px"
+        />
       </Link>
     </div>
   </header>
@@ -146,14 +184,17 @@ export const AppDesktopLayout = ({
   children,
   userName: userNameProp,
 }: AppDesktopLayoutProps) => {
+  // URLから選択中メニューとヘッダー文言を決め、全PC画面で表示を統一する。
   const pathname = usePathname();
   const meta = getDesktopPageMeta(pathname);
   const { userName: contextUserName } = useAppUser();
   const userName = userNameProp ?? contextUserName;
 
   return (
+    // 左を固定幅のaside、右をflex-1にして大きなモニターでも右側を埋める。
     <div className="flex min-h-[calc(100vh-32px)] w-full overflow-hidden rounded-2xl bg-[#080b10] shadow-2xl">
       <DesktopSidebar active={meta.active} userName={userName} />
+      {/* min-w-0が右列のはみ出しを防ぎ、子画面側のスクロールを有効にする。 */}
       <div className="flex min-w-0 flex-1 flex-col">
         <DesktopHeader
           active={meta.active}

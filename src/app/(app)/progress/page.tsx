@@ -7,7 +7,9 @@ const ProgressPage = async () => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const dataByExercise = user ? await getProgressDataByExercise(user.id) : undefined;
+  const dataByExercise = user
+    ? await getProgressDataByExercise(user.id)
+    : undefined;
 
   return <ProgressScreen dataByExercise={dataByExercise} />;
 };

@@ -17,8 +17,6 @@ const assets = {
   play: "/assets/play.svg",
 } as const;
 
-
-
 const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
   <section className="flex w-full flex-col gap-2">
     <h2 className="text-xs font-bold text-[#9ca3af]">今日の目標</h2>
@@ -33,7 +31,9 @@ const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
             {goal.statusLabel}
           </span>
         </div>
-        <p className="text-[13px] leading-[1.4] text-[#9ca3af]">{goal.description}</p>
+        <p className="text-[13px] leading-[1.4] text-[#9ca3af]">
+          {goal.description}
+        </p>
       </div>
     ) : (
       <div className="flex flex-col gap-3 rounded-lg border border-[#242c3b] bg-[#141822] p-4">
@@ -54,6 +54,7 @@ const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
 );
 
 const getChartPoints = (chart: GrowthReportSummary["chart"]) => {
+  // 値の最小・最大をSVGの高さへ変換し、重量の範囲が違ってもグラフ内に収める。
   const width = 300;
   const height = 60;
   const values = chart.map(({ value }) => value);
@@ -129,11 +130,12 @@ const GrowthReportContent = ({
   }
 
   const trendPrefix = growthReport.trendRate > 0 ? "+" : "";
-  const trendClassName = growthReport.trendRate > 0
-    ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]"
-    : growthReport.trendRate < 0
-      ? "bg-[rgba(239,68,68,0.13)] text-[#ef4444]"
-      : "bg-[#242c3b] text-[#9ca3af]";
+  const trendClassName =
+    growthReport.trendRate > 0
+      ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]"
+      : growthReport.trendRate < 0
+        ? "bg-[rgba(239,68,68,0.13)] text-[#ef4444]"
+        : "bg-[#242c3b] text-[#9ca3af]";
 
   return (
     <div className="flex min-h-[220px] flex-col gap-3 rounded-lg border border-[#242c3b] bg-[#141822] p-4 min-[769px]:min-h-[300px] min-[769px]:gap-[18px] min-[769px]:rounded-xl min-[769px]:border-[#273142] min-[769px]:bg-[#161c27] min-[769px]:p-6">
@@ -149,8 +151,11 @@ const GrowthReportContent = ({
             <span className="text-sm font-medium text-[#9ca3af]">kg</span>
           </p>
         </div>
-        <div className={`shrink-0 rounded-md px-2 py-1 text-xs font-bold ${trendClassName}`}>
-          {trendPrefix}{growthReport.trendRate.toFixed(1)}%
+        <div
+          className={`shrink-0 rounded-md px-2 py-1 text-xs font-bold ${trendClassName}`}
+        >
+          {trendPrefix}
+          {growthReport.trendRate.toFixed(1)}%
         </div>
       </div>
 
@@ -171,52 +176,54 @@ const MobileHomeView = ({
   goal?: GoalSummary | null;
   growthReport?: GrowthReportSummary | null;
 }) => (
+  // 親のデバイス高を引き継ぎ、ヘッダーとナビ以外のmainだけをスクロールさせる。
   <div
     className="mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/"
     data-node-id="165:520"
   >
-      <MobileAppHeader />
+    <MobileAppHeader />
 
-      <main className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4 [&>*]:shrink-0">
-        <HomeActionCard
-          title="相談する"
-          href="/consult"
-          lines={[
-            "AIトレーナーとチャットでメニューや強度を相談",
-            "現在のメニューを最適化しましょう",
-          ]}
-          mobileActionIcon={assets.chevronRight}
-          actionLabel="相談画面を開く"
-        />
+    {/* min-h-0とoverflow-y-autoの組み合わせで、狭い端末でも内容を縦に閲覧できる。 */}
+    <main className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4 [&>*]:shrink-0">
+      <HomeActionCard
+        title="相談する"
+        href="/consult"
+        lines={[
+          "AIトレーナーとチャットでメニューや強度を相談",
+          "現在のメニューを最適化しましょう",
+        ]}
+        mobileActionIcon={assets.chevronRight}
+        actionLabel="相談画面を開く"
+      />
 
-        <MobileGoalSection goal={goal} />
+      <MobileGoalSection goal={goal} />
 
-        <HomeActionCard
-          title="報告する"
-          href="/report"
-          lines={["AIトレーナーとチャットでトレーニングを記録"]}
-          mobileActionIcon={assets.play}
-          mobileActionIconClassName="size-4"
-          actionLabel="報告画面を開く"
-        />
+      <HomeActionCard
+        title="報告する"
+        href="/report"
+        lines={["AIトレーナーとチャットでトレーニングを記録"]}
+        mobileActionIcon={assets.play}
+        mobileActionIconClassName="size-4"
+        actionLabel="報告画面を開く"
+      />
 
-        <section className="flex w-full flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-[#9ca3af]">成長レポート</h2>
-            <Link
-              href="/progress"
-              className="text-[11px] text-[#6b7280] transition-colors hover:text-[#9ca3af]"
-            >
-              詳細表示
-            </Link>
-          </div>
-          <GrowthReportContent growthReport={growthReport} />
-        </section>
-      </main>
+      <section className="flex w-full flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold text-[#9ca3af]">成長レポート</h2>
+          <Link
+            href="/progress"
+            className="text-[11px] text-[#6b7280] transition-colors hover:text-[#9ca3af]"
+          >
+            詳細表示
+          </Link>
+        </div>
+        <GrowthReportContent growthReport={growthReport} />
+      </section>
+    </main>
 
-      <AppTabBar active="home" />
-    </div>
+    <AppTabBar active="home" />
+  </div>
 );
 
 const DesktopGoalPanel = ({ goal }: { goal?: GoalSummary | null }) => (
@@ -233,7 +240,9 @@ const DesktopGoalPanel = ({ goal }: { goal?: GoalSummary | null }) => (
             {goal.statusLabel}
           </span>
         </div>
-        <p className="text-sm leading-[1.5] text-[#98a2b3]">{goal.description}</p>
+        <p className="text-sm leading-[1.5] text-[#98a2b3]">
+          {goal.description}
+        </p>
       </div>
     ) : (
       <div className="flex min-h-[180px] flex-col items-start gap-4 rounded-xl border border-[#273142] bg-[#161c27] p-6">
@@ -277,32 +286,33 @@ const DesktopHomeView = ({
   goal?: GoalSummary | null;
   growthReport?: GrowthReportSummary | null;
 }) => (
+  // PCは上段に主要アクション、下段に目標と成長レポートを2列で配置する。
   <main className="flex flex-col gap-6 p-10">
-        <section className="flex gap-6">
-          <HomeActionCard
-            title="相談する"
-            lines={[
-              "AIトレーナーとチャットでメニューや強度を相談",
-              "現在のメニューを最適化しましょう",
-            ]}
-            href="/consult"
-            mobileActionIcon={assets.chevronRight}
-            actionLabel="相談画面を開く"
-          />
-          <HomeActionCard
-            title="報告する"
-            lines={["AIトレーナーとチャットでトレーニングを記録"]}
-            href="/report"
-            mobileActionIcon={assets.play}
-            mobileActionIconClassName="size-4"
-            actionLabel="報告画面を開く"
-          />
-        </section>
-        <section className="flex gap-6">
-          <DesktopGoalPanel goal={goal} />
-          <DesktopGrowthReport growthReport={growthReport} />
-        </section>
-      </main>
+    <section className="flex gap-6">
+      <HomeActionCard
+        title="相談する"
+        lines={[
+          "AIトレーナーとチャットでメニューや強度を相談",
+          "現在のメニューを最適化しましょう",
+        ]}
+        href="/consult"
+        mobileActionIcon={assets.chevronRight}
+        actionLabel="相談画面を開く"
+      />
+      <HomeActionCard
+        title="報告する"
+        lines={["AIトレーナーとチャットでトレーニングを記録"]}
+        href="/report"
+        mobileActionIcon={assets.play}
+        mobileActionIconClassName="size-4"
+        actionLabel="報告画面を開く"
+      />
+    </section>
+    <section className="flex gap-6">
+      <DesktopGoalPanel goal={goal} />
+      <DesktopGrowthReport growthReport={growthReport} />
+    </section>
+  </main>
 );
 
 export const FitnessAppHome = ({

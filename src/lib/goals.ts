@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import type { ActiveGoal } from "@/lib/_types/goal";
 
-export const getActiveGoal = async (userId: string): Promise<ActiveGoal | null> => {
+export const getActiveGoal = async (
+  userId: string,
+): Promise<ActiveGoal | null> => {
   const goal = await prisma.trainingGoal.findFirst({
     where: {
       userId,

@@ -29,7 +29,9 @@ const TrainerChatBubble = ({
       <div className="flex w-full justify-end">
         <div
           className={`flex flex-col gap-1 rounded-bl-[10px] rounded-br-[10px] rounded-tl-[10px] bg-[#222b3f] ${
-            desktop ? "w-full max-w-[420px] p-3.5" : "w-[75%] min-w-0 wrap-anywhere p-3"
+            desktop
+              ? "w-full max-w-[420px] p-3.5"
+              : "w-[75%] min-w-0 wrap-anywhere p-3"
           }`}
         >
           <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#f9fafb]">
@@ -46,7 +48,13 @@ const TrainerChatBubble = ({
   return (
     <div className="flex w-full items-start gap-2.5 min-[769px]:gap-3">
       <div className="relative size-9 shrink-0 overflow-hidden rounded-[18px]">
-        <Image src={assets.trainerAvatar} alt="" fill className="object-cover" sizes="36px" />
+        <Image
+          src={assets.trainerAvatar}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="36px"
+        />
       </div>
       <div
         className={`flex flex-col gap-1 rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border bg-[linear-gradient(90deg,#16223b_0%,#0f1420_100%)] ${
@@ -72,6 +80,7 @@ export const TrainerChatArea = ({
   chatAreaRef,
   desktop = false,
 }: TrainerChatAreaProps) => (
+  // min-h-0で親より縮められるようにし、画面全体ではなく会話領域だけをスクロールする。
   <div
     ref={chatAreaRef}
     className={`flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-1 ${
@@ -84,7 +93,13 @@ export const TrainerChatArea = ({
     {isSending && (
       <div className="flex w-full items-start gap-2.5 min-[769px]:gap-3">
         <div className="relative size-9 shrink-0 overflow-hidden rounded-[18px]">
-          <Image src={assets.trainerAvatar} alt="" fill className="object-cover" sizes="36px" />
+          <Image
+            src={assets.trainerAvatar}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="36px"
+          />
         </div>
         <div className="rounded-bl-[10px] rounded-br-[10px] rounded-tr-[10px] border border-[#273142] bg-[linear-gradient(90deg,#16223b_0%,#0f1420_100%)] px-3 py-2.5">
           <p className="text-[13px] text-[#9ca3af]">入力中…</p>

@@ -1,12 +1,14 @@
 {
-  "name": "cursor_figma_test",
+  "name": "repmate",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -24,8 +26,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^18.0.9",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "prettier": "^3.9.10",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5"

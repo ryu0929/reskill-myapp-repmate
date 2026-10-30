@@ -2,7 +2,11 @@
 
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { genderOptions } from "../_types/mypage";
-import type { MypageScreenProps, ProfileFieldProps, ProfileSummaryProps } from "../_types/mypage";
+import type {
+  MypageScreenProps,
+  ProfileFieldProps,
+  ProfileSummaryProps,
+} from "../_types/mypage";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,16 +14,6 @@ import { profileSchema } from "../_schemas/profile";
 import type { ProfileFormValues } from "../_schemas/profile";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
-
-// const defaultUser: UserProfile = {
-//   name: "山田 太郎",
-//   gender: "男性",
-//   email: "taro.yamada@example.com",
-//   trainingHistory: "トレーニング歴 8ヶ月",
-//   streakLabel: "継続 12週間",
-//   initials: "RM",
-// };
 
 const ProfileSummary = ({ user }: ProfileSummaryProps) => (
   <section className="flex w-full items-center gap-4 rounded-[14px] border border-[#293142] bg-[#141822] p-4 shadow-[0px_10px_28px_rgba(0,0,0,0.2)] min-[769px]:gap-5 min-[769px]:border-[#273142] min-[769px]:p-5 min-[769px]:shadow-none">
@@ -32,15 +26,34 @@ const ProfileSummary = ({ user }: ProfileSummaryProps) => (
       <h1 className="truncate text-2xl font-bold text-[#f9fafb] min-[769px]:text-[22px]">
         {user.name}
       </h1>
-      <p className="mt-1.5 text-[13px] text-[#9ca3af]">{user.trainingHistory}</p>
+      <p className="mt-1.5 text-[13px] text-[#9ca3af]">
+        {user.trainingHistory}
+      </p>
     </div>
   </section>
 );
 
-const ProfileField = ({ id, label, value, editing, children }: ProfileFieldProps) => (
+const ProfileField = ({
+  id,
+  label,
+  value,
+  editing,
+  children,
+}: ProfileFieldProps) => (
   <div className="min-w-0 border-b border-[#242c3b] py-3.5 min-[769px]:py-4">
-    <label htmlFor={editing ? id : undefined} className="block text-[11px] font-semibold text-[#9ca3af] min-[769px]:text-xs">{label}</label>
-    {editing ? children : <p className="mt-1 break-words text-[15px] font-semibold text-[#f9fafb] min-[769px]:text-base">{value}</p>}
+    <label
+      htmlFor={editing ? id : undefined}
+      className="block text-[11px] font-semibold text-[#9ca3af] min-[769px]:text-xs"
+    >
+      {label}
+    </label>
+    {editing ? (
+      children
+    ) : (
+      <p className="mt-1 break-words text-[15px] font-semibold text-[#f9fafb] min-[769px]:text-base">
+        {value}
+      </p>
+    )}
   </div>
 );
 
@@ -64,17 +77,17 @@ const LogoutButton = () => {
 
     router.replace("/login");
     router.refresh();
-  }
+  };
 
   return (
     <button
-        type="button"
-        className="flex w-full items-center justify-center rounded-[14px] border border-[#242c3b] py-[13px] text-[13px] font-semibold text-[#9ca3af] transition-colors hover:border-[#384255] hover:text-[#f9fafb] min-[769px]:border-[#273142] min-[769px]:bg-[#141822] min-[769px]:py-3.5 min-[769px]:text-sm"
-        onClick={handleLogout}
-        disabled={isLoggingOut}
-      >
-        {isLoggingOut ? "ログアウト中..." : "ログアウト"}
-      </button>
+      type="button"
+      className="flex w-full items-center justify-center rounded-[14px] border border-[#242c3b] py-[13px] text-[13px] font-semibold text-[#9ca3af] transition-colors hover:border-[#384255] hover:text-[#f9fafb] min-[769px]:border-[#273142] min-[769px]:bg-[#141822] min-[769px]:py-3.5 min-[769px]:text-sm"
+      onClick={handleLogout}
+      disabled={isLoggingOut}
+    >
+      {isLoggingOut ? "ログアウト中..." : "ログアウト"}
+    </button>
   );
 };
 
@@ -83,7 +96,13 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState("");
   const editButtonRef = useRef<HTMLButtonElement>(null);
-  const { register, control, handleSubmit, reset, formState: { errors, isDirty, isSubmitting } } = useForm<ProfileFormValues>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty, isSubmitting },
+  } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user.name,
@@ -95,80 +114,76 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
   const router = useRouter();
 
   const completeEditing = async (values: ProfileFormValues) => {
-      if(!editing) return;
+    if (!editing) return;
 
-      if (!isDirty) {
-        setNotice("");
-        setEditing(false);
-        editButtonRef.current?.focus();
+    if (!isDirty) {
+      setNotice("");
+      setEditing(false);
+      editButtonRef.current?.focus();
+      return;
+    }
+
+    try {
+      const response = await fetch("api/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error("APIエラー:", result.error);
+        setNotice("送信に失敗しました。");
         return;
       }
 
-      try {
-        const response = await fetch("api/profile", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        });
+      setProfile((current) => ({
+        ...current,
+        name: result.profile.name,
+        gender: result.profile.gender,
+      }));
 
-        const result = await response.json();
+      reset({
+        name: result.profile.name,
+        gender: result.profile.gender,
+        password: "",
+        confirmation: "",
+      });
 
-        if(!response.ok) {
-          console.error("APIエラー:", result.error);
-          setNotice("送信に失敗しました。");
-          return;
-        }
+      setNotice("");
 
-        setProfile((current) => ({
-          ...current,
-          name: result.profile.name,
-          gender: result.profile.gender,
-        }));
+      // 編集モードを終了
+      setEditing(false);
+      editButtonRef.current?.focus();
 
-        reset({
-          name: result.profile.name,
-          gender: result.profile.gender,
-          password: "",
-          confirmation: "",
-        });
-
-        setNotice("");
-
-        // 編集モードを終了
-        setEditing(false);
-        editButtonRef.current?.focus();
-
-        // Server Componentのデータを再取得
-        router.refresh();
-        
-      } catch(error) {
-        console.error("通信エラー:", error);
-        setNotice("通信エラーが発生しました。");
-      }
+      // Server Componentのデータを再取得
+      router.refresh();
+    } catch (error) {
+      console.error("通信エラー:", error);
+      setNotice("通信エラーが発生しました。");
+    }
   };
 
-  const inputClassName = "mt-2 w-full min-w-0 rounded-lg border border-[#384255] bg-[#0f131c] px-3 py-2 text-base text-[#f9fafb] outline-none focus:border-[#1856ed] focus:ring-2 focus:ring-[#1856ed]";
+  const inputClassName =
+    "mt-2 w-full min-w-0 rounded-lg border border-[#384255] bg-[#0f131c] px-3 py-2 text-base text-[#f9fafb] outline-none focus:border-[#1856ed] focus:ring-2 focus:ring-[#1856ed]";
 
   return (
-    <section
-      className="flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] min-[769px]:h-[calc(100dvh-32px)] min-[769px]:max-w-[1440px] min-[769px]:rounded-none min-[769px]:bg-[#080b10]"
-    >
+    // SPは親のデバイス高、PCは上下余白を引いた100dvhを基準に画面を作る。
+    <section className="flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] min-[769px]:h-[calc(100dvh-32px)] min-[769px]:max-w-[1440px] min-[769px]:rounded-none min-[769px]:bg-[#080b10]">
       <MobileAppHeader />
-      <main
-        className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain px-5 pb-4 pt-6 min-[769px]:px-5 min-[769px]:py-6"
-      >
-        <div
-          className="flex w-full shrink-0 flex-col gap-5 min-[769px]:max-w-[420px] min-[769px]:gap-6"
-        >
-          <ProfileSummary
-            user={profile}
-          />
+      {/* フォームが画面高を超えた場合は、ヘッダーを残して本文だけスクロールする。 */}
+      <main className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain px-5 pb-4 pt-6 min-[769px]:px-5 min-[769px]:py-6">
+        <div className="flex w-full shrink-0 flex-col gap-5 min-[769px]:max-w-[420px] min-[769px]:gap-6">
+          <ProfileSummary user={profile} />
           <form
             noValidate
             className="flex w-full flex-col gap-5 min-[769px]:gap-6"
-            onSubmit={(event) => { void handleSubmit(completeEditing)(event); }}
+            onSubmit={(event) => {
+              void handleSubmit(completeEditing)(event);
+            }}
           >
             <section
               aria-label="プロフィール情報"
@@ -189,11 +204,15 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
                   aria-describedby={errors.name ? "name-error" : undefined}
                   className={inputClassName}
                 />
-                {errors.name && <p
-                  id="name-error"
-                  role="alert"
-                  className="mt-2 text-xs text-red-400"
-                >{errors.name.message}</p>}
+                {errors.name && (
+                  <p
+                    id="name-error"
+                    role="alert"
+                    className="mt-2 text-xs text-red-400"
+                  >
+                    {errors.name.message}
+                  </p>
+                )}
               </ProfileField>
               <ProfileField
                 id="profile-gender"
@@ -205,32 +224,45 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
                   name="gender"
                   control={control}
                   render={({ field }) => (
-                  <div
-                    id="profile-gender"
-                    role="group"
-                    aria-label="性別"
-                    aria-describedby={errors.gender ? "gender-error" : undefined}
-                    className="mt-3 grid h-11 grid-cols-3 gap-1 rounded-[14px] border border-[#242c3b] bg-[#0f131c] p-1 min-[769px]:h-12"
-                  >
-                    {genderOptions.map((option, index) => (
-                      <button
-                        ref={index === 0 ? field.ref : undefined}
-                        key={option}
-                        type="button"
-                        onBlur={field.onBlur}
-                        aria-pressed={field.value === option}
-                        onClick={() => field.onChange(option)}
-                        className={"min-w-0 rounded-[10px] text-[13px] transition-colors " + (field.value === option ? "bg-[#1856ed] font-bold text-[#f9fafb]" : "text-[#9ca3af] hover:text-[#f9fafb]")}
-                      >{option}</button>
-                    ))}
-                  </div>
-                )}
+                    <div
+                      id="profile-gender"
+                      role="group"
+                      aria-label="性別"
+                      aria-describedby={
+                        errors.gender ? "gender-error" : undefined
+                      }
+                      className="mt-3 grid h-11 grid-cols-3 gap-1 rounded-[14px] border border-[#242c3b] bg-[#0f131c] p-1 min-[769px]:h-12"
+                    >
+                      {genderOptions.map((option, index) => (
+                        <button
+                          ref={index === 0 ? field.ref : undefined}
+                          key={option}
+                          type="button"
+                          onBlur={field.onBlur}
+                          aria-pressed={field.value === option}
+                          onClick={() => field.onChange(option)}
+                          className={
+                            "min-w-0 rounded-[10px] text-[13px] transition-colors " +
+                            (field.value === option
+                              ? "bg-[#1856ed] font-bold text-[#f9fafb]"
+                              : "text-[#9ca3af] hover:text-[#f9fafb]")
+                          }
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 />
-                {errors.gender && <p
-                  id="gender-error"
-                  role="alert"
-                  className="mt-2 text-xs text-red-400"
-                >{errors.gender.message}</p>}
+                {errors.gender && (
+                  <p
+                    id="gender-error"
+                    role="alert"
+                    className="mt-2 text-xs text-red-400"
+                  >
+                    {errors.gender.message}
+                  </p>
+                )}
               </ProfileField>
               <ProfileField
                 id="profile-email"
@@ -250,53 +282,74 @@ const MypageScreen = ({ user }: MypageScreenProps) => {
                   type="password"
                   autoComplete="new-password"
                   aria-invalid={!!errors.password}
-                  aria-describedby={errors.password ? "password-hint password-error" : "password-hint"}
+                  aria-describedby={
+                    errors.password
+                      ? "password-hint password-error"
+                      : "password-hint"
+                  }
                   className={inputClassName}
                 />
-                {errors.password && <p
-                  id="password-error"
-                  role="alert"
-                  className="mt-2 text-xs text-red-400"
-                >{errors.password.message}</p>}
-                <p
-                  id="password-hint"
-                  className="mt-2 text-xs text-[#9ca3af]"
-                >変更しない場合は空欄のままにしてください。</p>
+                {errors.password && (
+                  <p
+                    id="password-error"
+                    role="alert"
+                    className="mt-2 text-xs text-red-400"
+                  >
+                    {errors.password.message}
+                  </p>
+                )}
+                <p id="password-hint" className="mt-2 text-xs text-[#9ca3af]">
+                  変更しない場合は空欄のままにしてください。
+                </p>
                 <label
                   htmlFor="profile-password-confirmation"
                   className="mt-3 block text-xs text-[#9ca3af]"
-                >新しいパスワード（確認）</label>
+                >
+                  新しいパスワード（確認）
+                </label>
                 <input
                   {...register("confirmation")}
                   id="profile-password-confirmation"
                   type="password"
                   autoComplete="new-password"
                   aria-invalid={!!errors.confirmation}
-                  aria-describedby={errors.confirmation ? "confirmation-error" : undefined}
+                  aria-describedby={
+                    errors.confirmation ? "confirmation-error" : undefined
+                  }
                   className={inputClassName}
                 />
-                {errors.confirmation && <p
-                  id="confirmation-error"
-                  role="alert"
-                  className="mt-2 text-xs text-red-400"
-                >{errors.confirmation.message}</p>}
+                {errors.confirmation && (
+                  <p
+                    id="confirmation-error"
+                    role="alert"
+                    className="mt-2 text-xs text-red-400"
+                  >
+                    {errors.confirmation.message}
+                  </p>
+                )}
               </ProfileField>
             </section>
-            {notice && <p
-              role="status"
-              className="text-xs text-[#9ca3af]"
-            >{notice}</p>}
+            {notice && (
+              <p role="status" className="text-xs text-[#9ca3af]">
+                {notice}
+              </p>
+            )}
             <button
               ref={editButtonRef}
               disabled={isSubmitting}
               type={editing ? "submit" : "button"}
               onClick={(event) => {
-              if (editing) return;
-              event.preventDefault();
-              reset({ name: profile.name, gender: profile.gender, password: "", confirmation: "" });
-              setNotice("");
-              setEditing(true);
-            }}
+                if (editing) return;
+                event.preventDefault();
+                reset({
+                  name: profile.name,
+                  gender: profile.gender,
+                  password: "",
+                  confirmation: "",
+                });
+                setNotice("");
+                setEditing(true);
+              }}
               className="flex w-full items-center justify-center rounded-[14px] bg-[#1856ed] py-[13px] text-[13px] font-bold text-[#f9fafb] transition-opacity hover:opacity-90 min-[769px]:py-3.5 min-[769px]:text-sm"
             >
               {editing ? "編集を完了する" : "プロフィールを編集"}

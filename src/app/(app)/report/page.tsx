@@ -11,10 +11,14 @@ const ReportPage = async () => {
 
   return (
     <ReportScreen
-      goal={activeGoal ? {
-        title: activeGoal.title,
-        detail: activeGoal.description,
-      } : null}
+      goal={
+        activeGoal
+          ? {
+              title: activeGoal.title,
+              detail: activeGoal.description,
+            }
+          : null
+      }
     />
   );
 };

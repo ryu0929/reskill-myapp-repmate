@@ -11,13 +11,16 @@ const REPORT_SYSTEM_PROMPT = `あなたはフィットネスアプリ「RepMate�
 ユーザーが報告した重量・回数・セット数を簡潔に確認し、記録内容の確認を促してください。
 医学的診断はせず、痛みや異常がある場合は専門家への相談を促してください。`;
 
-const createMockReply = (exercise: string, mode: "consult" | "report") => (
+// 開発中やデモ時に、外部APIを呼ばず固定の返答を作る。
+const createMockReply = (exercise: string, mode: "consult" | "report") =>
   mode === "report"
     ? `${exercise}の内容を確認しました。表示された記録内容を確認して「記録する」を押してください。`
     : `${exercise}ですね。現在の体調を優先しながら、無理のない重量でフォームを確認しましょう。` +
-      "今日は回数とセット数を具体的に決めると、取り組みやすい目標になります。"
-);
+      "今日は回数とセット数を具体的に決めると、取り組みやすい目標になります。";
 
+const shouldUseMockAi = process.env.USE_MOCK_AI === "true";
+
+// 外部から届くJSONはunknownとして受け取り、必要な形か実行時に検証する。
 const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
   if (!value || typeof value !== "object") return false;
 
@@ -25,7 +28,11 @@ const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
   if (body.exercise !== undefined && typeof body.exercise !== "string") {
     return false;
   }
-  if (body.mode !== undefined && body.mode !== "consult" && body.mode !== "report") {
+  if (
+    body.mode !== undefined &&
+    body.mode !== "consult" &&
+    body.mode !== "report"
+  ) {
     return false;
   }
 
@@ -41,6 +48,7 @@ const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
   );
 };
 
+// Geminiの候補内に分かれているtextを、一つの返答文字列へ結合する。
 const getOutputText = (data: GeminiResponseBody): string =>
   data.candidates
     ?.flatMap((candidate) => candidate.content?.parts ?? [])
@@ -48,6 +56,7 @@ const getOutputText = (data: GeminiResponseBody): string =>
     .join("")
     .trim() ?? "";
 
+// 画面の会話形式をGemini APIのrole・parts形式へ変換して送信する。
 const replyWithGemini = async (
   exercise: string,
   messages: ChatApiMessage[],
@@ -59,6 +68,7 @@ const replyWithGemini = async (
   }
 
   const model = process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
+  // fetchでGeminiのREST APIを呼び、画面から受け取った会話履歴をまとめて渡す。
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -69,9 +79,11 @@ const replyWithGemini = async (
       },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{
-            text: `${mode === "report" ? REPORT_SYSTEM_PROMPT : SYSTEM_PROMPT}\n現在の種目: ${exercise}`,
-          }],
+          parts: [
+            {
+              text: `${mode === "report" ? REPORT_SYSTEM_PROMPT : SYSTEM_PROMPT}\n現在の種目: ${exercise}`,
+            },
+          ],
         },
         contents: messages.map((message) => ({
           role: message.role === "assistant" ? "model" : "user",
@@ -95,7 +107,9 @@ const replyWithGemini = async (
   return content;
 };
 
+// POST /api/chat: 会話履歴を検証し、モックまたはGeminiの返答を返す。
 export const POST = async (request: Request) => {
+  // APIを直接呼ばれても、ログイン済みユーザー以外は処理しない。
   const supabase = await createClient();
   const {
     data: { user },
@@ -114,15 +128,22 @@ export const POST = async (request: Request) => {
   }
 
   if (!isChatRequestBody(body)) {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const exercise = body.exercise?.trim() || "ベンチプレス";
   const mode = body.mode ?? "consult";
+  // 空文字のメッセージはAIへ送らず、有効な会話だけを残す。
   const messages = body.messages?.filter((m) => m.content.trim()) ?? [];
 
   if (messages.length === 0) {
-    return NextResponse.json({ error: "messages is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "messages is required" },
+      { status: 400 },
+    );
   }
 
   if (!messages.some((message) => message.role === "user")) {
@@ -133,7 +154,8 @@ export const POST = async (request: Request) => {
   }
 
   try {
-    if (process.env.USE_MOCK_AI !== "false") {
+    // モックは明示的にtrueの場合だけ使い、本番の設定漏れを見つけやすくする。
+    if (shouldUseMockAi) {
       return NextResponse.json({
         reply: createMockReply(exercise, mode),
         provider: "mock" as const,

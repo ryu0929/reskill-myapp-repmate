@@ -2,7 +2,12 @@ import type { FormEvent, RefObject } from "react";
 import type { ChatMessage } from "@/lib/chat-types";
 import type { TrainingRecordItem } from "@/lib/_types/training-record";
 
-export const EXERCISES = ["ベンチプレス", "スクワット", "デッドリフト", "ショルダープレス"] as const;
+export const EXERCISES = [
+  "ベンチプレス",
+  "スクワット",
+  "デッドリフト",
+  "ショルダープレス",
+] as const;
 
 export type Exercise = (typeof EXERCISES)[number];
 
@@ -45,6 +50,7 @@ export type ReportViewProps = {
   input: string;
   isSending: boolean;
   isSavingRecord: boolean;
+  isLoadingRecords: boolean;
   isRecordPanelOpen: boolean;
   showExercisePicker: boolean;
   records: TrainingRecordItem[];
@@ -56,7 +62,10 @@ export type ReportViewProps = {
   onExerciseToggle: () => void;
   onExerciseChange: (exercise: Exercise) => void;
   onInputChange: (value: string) => void;
-  onRecordDraftChange: (field: keyof TrainingRecordDraft, value: string) => void;
+  onRecordDraftChange: (
+    field: keyof TrainingRecordDraft,
+    value: string,
+  ) => void;
   onSaveRecord: () => void;
   onCancelRecord: () => void;
   onOpenRecordPanel: () => void;
@@ -73,6 +82,7 @@ export type ReportViewProps = {
 export type TrainingRecordListProps = Pick<
   ReportViewProps,
   | "records"
+  | "isLoadingRecords"
   | "editingRecordId"
   | "editWeight"
   | "editReps"

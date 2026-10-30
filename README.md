@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RepMate
 
-## Getting Started
+RepMateは、トレーニングの相談、実績の記録、成長の確認を一つにまとめたAIトレーニング支援アプリです。記録アプリと生成AIを別々に使う手間を減らし、過去の実績を見ながら次の目標を決められる体験を目指しています。
 
-First, run the development server:
+## デモ
+
+- URL: <https://reskill-myapp-repmate.vercel.app/>
+- メールアドレス: `test@gmail.com`
+- パスワード: レビュー test1234
+
+ログイン後、ホーム、AI相談、トレーニング報告、成長レポート、マイページを確認できます。
+
+## 主な機能
+
+- Supabase Authによるサインアップ、ログイン、ログアウト
+- Gemini APIを使ったAIトレーナーへの相談
+- 会話内容に基づく当日の目標候補生成と目標設定
+- トレーニング記録の登録、一覧表示、編集、削除
+- 重量と回数から算出した推定1RM、推移グラフ、自己ベストの表示
+- 名前、性別、パスワードのプロフィール編集
+- スマートフォンとデスクトップに対応したレスポンシブ表示
+
+## 技術スタック
+
+| 分類           | 使用技術                 |
+| -------------- | ------------------------ |
+| フレームワーク | Next.js 16（App Router） |
+| UI             | React 19、Tailwind CSS 4 |
+| 言語           | TypeScript               |
+| フォーム       | React Hook Form、Zod     |
+| データベース   | Supabase PostgreSQL      |
+| ORM            | Prisma                   |
+| 認証           | Supabase Auth            |
+| 生成AI         | Gemini API               |
+| デプロイ       | Vercel                   |
+
+## 外部サービス
+
+### Gemini API
+
+AI相談と目標候補の生成に使用します。`USE_MOCK_AI=true`にすると、ローカル開発用の固定応答へ切り替わります。本番環境では`USE_MOCK_AI=false`と`GEMINI_API_KEY`を設定してください。
+
+### Supabase
+
+メールアドレスとパスワードによる認証、PostgreSQLデータベースを提供します。サーバー処理は認証ユーザーIDと記録の`user_id`を照合し、本人のデータだけを操作します。
+
+## ローカル環境の構築
+
+必要環境はNode.js 20以降です。
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.example`を参考にSupabase、Prisma、Geminiの値を設定します。Prisma CLIはルートの`.env`からデータベース接続情報を読み込むため、必要に応じて`DATABASE_URL`と`DIRECT_URL`を`.env`にも設定してください。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx prisma generate
+npx prisma migrate deploy
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+<http://localhost:3000>を開いて動作を確認します。
 
-## Learn More
+## 環境変数
 
-To learn more about Next.js, take a look at the following resources:
+| 変数                            | 用途                            |
+| ------------------------------- | ------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | SupabaseプロジェクトURL         |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase公開Anon Key            |
+| `DATABASE_URL`                  | Prisma用のPostgreSQL接続URL     |
+| `DIRECT_URL`                    | マイグレーション用の直接接続URL |
+| `GEMINI_API_KEY`                | Gemini APIキー                  |
+| `GEMINI_MODEL`                  | 使用するGeminiモデル            |
+| `USE_MOCK_AI`                   | `true`のときだけ固定応答を使用  |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## コマンド
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run dev          # 開発サーバー
+npm run build        # 本番ビルド
+npm run lint         # ESLint
+npm run format       # Prettierで整形
+npm run format:check # 整形状態の確認
+npx tsc --noEmit     # TypeScript型チェック
+```
 
-## Deploy on Vercel
+## データベース
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Prismaスキーマは[prisma/schema.prisma](prisma/schema.prisma)、現在のテーブル構成と役割は[docs/database-design.md](docs/database-design.md)に記載しています。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 今後の改善
+
+- AIによる成長フィードバックの生成と履歴保存
+- 報告チャット履歴の永続化
+- 種目別デモデータの拡充
+- トレーニング歴や継続期間の実データ表示

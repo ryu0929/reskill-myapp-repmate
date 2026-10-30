@@ -1,0 +1,11 @@
+.next
+node_modules
+src/generated
+docs/*.html
+docs/*.pdf
+docs/repmate-crud-study-guide.md
+package-lock.json
+public
+resources
+AGENTS.md
+CLAUDE.md

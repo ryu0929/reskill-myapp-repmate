@@ -28,12 +28,10 @@ const assets = {
   plusCircle: "/assets/consult/plus-circle.svg",
 } as const;
 
-
 const createId = () => crypto.randomUUID();
 
-const wait = (duration: number) => (
-  new Promise<void>((resolve) => window.setTimeout(resolve, duration))
-);
+const wait = (duration: number) =>
+  new Promise<void>((resolve) => window.setTimeout(resolve, duration));
 
 const welcomeMessage = (exercise: string): ChatMessage => ({
   id: createId(),
@@ -42,6 +40,7 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
   createdAt: new Date().toISOString(),
 });
 
+// 種目選択はモバイル・PCで同じ動作を使うため、共通部品にまとめる。
 const ExerciseSelector = ({
   exercise,
   isOpen,
@@ -63,7 +62,11 @@ const ExerciseSelector = ({
       <span className="flex items-center gap-1 text-xs text-[#9ca3af] min-[769px]:text-[13px]">
         種目を変更
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img alt="" className="size-[11px] min-[769px]:h-[5px] min-[769px]:w-2" src={assets.chevronDown} />
+        <img
+          alt=""
+          className="size-[11px] min-[769px]:h-[5px] min-[769px]:w-2"
+          src={assets.chevronDown}
+        />
       </span>
     </button>
     {isOpen && (
@@ -107,7 +110,9 @@ const GoalProposalCard = ({
         aria-hidden
       />
       <span className="min-w-0">
-        <span className="block text-sm font-bold text-[#f8fafc]">{proposal.title}</span>
+        <span className="block text-sm font-bold text-[#f8fafc]">
+          {proposal.title}
+        </span>
         <span className="mt-2 block text-[13px] leading-[1.5] text-[#98a2b3]">
           {proposal.description}
         </span>
@@ -121,7 +126,11 @@ const GoalChangeActions = ({
   onRestartConsultation,
   compact = false,
 }: GoalChangeActionsProps) => (
-  <div className={compact ? "grid shrink-0 grid-cols-2 gap-2" : "flex flex-col gap-2"}>
+  <div
+    className={
+      compact ? "grid shrink-0 grid-cols-2 gap-2" : "flex flex-col gap-2"
+    }
+  >
     <button
       type="button"
       onClick={onChangeGoal}
@@ -143,7 +152,10 @@ const CurrentGoalSummary = ({ goal }: { goal: GoalSummary }) => (
   <section className="w-full shrink-0 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="size-2 shrink-0 rounded-full bg-[#10b981]" aria-hidden />
+        <span
+          className="size-2 shrink-0 rounded-full bg-[#10b981]"
+          aria-hidden
+        />
         <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
       </div>
       <span className="shrink-0 text-[11px] font-bold text-[#10b981]">
@@ -178,14 +190,19 @@ const ConfiguredGoalView = ({
       <div className="flex flex-col gap-4 rounded-xl border border-[#273142] bg-[linear-gradient(164deg,#161c27_25%,#0b0d12_75%)] p-5 min-[769px]:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-[#10b981]" aria-hidden />
+            <span
+              className="size-2 shrink-0 rounded-full bg-[#10b981]"
+              aria-hidden
+            />
             <h3 className="text-base font-bold text-[#f8fafc]">{goal.name}</h3>
           </div>
           <span className="shrink-0 rounded-md bg-[rgba(16,185,129,0.13)] px-2 py-1 text-[11px] font-bold text-[#10b981]">
             {goal.statusLabel}
           </span>
         </div>
-        <p className="text-sm leading-[1.7] text-[#98a2b3]">{goal.description}</p>
+        <p className="text-sm leading-[1.7] text-[#98a2b3]">
+          {goal.description}
+        </p>
       </div>
 
       <GoalChangeActions
@@ -212,6 +229,7 @@ const GoalComposerContent = ({
   onChangeGoal,
   onRestartConsultation,
 }: GoalComposerContentProps) => {
+  // 現在の目標と新しい候補を同じ領域で切り替えて表示する。
   const hasProposals = proposals.length > 0;
 
   return (
@@ -231,7 +249,7 @@ const GoalComposerContent = ({
             ? isChangingGoal
               ? "変更中"
               : "作成中"
-            : goal?.statusLabel ?? "未設定"}
+            : (goal?.statusLabel ?? "未設定")}
         </span>
       </div>
 
@@ -252,14 +270,16 @@ const GoalComposerContent = ({
           </div>
         )}
 
-        {!isGeneratingGoals && hasProposals && proposals.map((proposal) => (
-          <GoalProposalCard
-            key={proposal.id}
-            proposal={proposal}
-            selected={selectedProposalId === proposal.id}
-            onSelect={() => onSelectGoal(proposal.id)}
-          />
-        ))}
+        {!isGeneratingGoals &&
+          hasProposals &&
+          proposals.map((proposal) => (
+            <GoalProposalCard
+              key={proposal.id}
+              proposal={proposal}
+              selected={selectedProposalId === proposal.id}
+              onSelect={() => onSelectGoal(proposal.id)}
+            />
+          ))}
 
         {!isGeneratingGoals && !hasProposals && goal && (
           <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
@@ -267,7 +287,9 @@ const GoalComposerContent = ({
               <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
               <p className="text-sm font-bold text-[#f8fafc]">{goal.name}</p>
             </div>
-            <p className="text-[13px] leading-[1.4] text-[#98a2b3]">{goal.description}</p>
+            <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
+              {goal.description}
+            </p>
           </div>
         )}
 
@@ -357,6 +379,7 @@ const MobileConsultView = ({
   onRestartConsultation,
   onCloseGoalComposer,
 }: ConsultViewProps) => (
+  // SPは1画面内を縦に分割し、目標候補は下から重なるシートとして表示する。
   <div
     className="relative mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/consult"
@@ -371,6 +394,7 @@ const MobileConsultView = ({
       />
     ) : (
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 pb-3 pt-1">
+        {/* チャット領域へ残りの高さを渡すため、外側ではスクロールを増やさない。 */}
         {goal && isReconsulting && <CurrentGoalSummary goal={goal} />}
         <ExerciseSelector
           exercise={exercise}
@@ -378,8 +402,17 @@ const MobileConsultView = ({
           onToggle={onExerciseToggle}
           onChange={onExerciseChange}
         />
-        <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} />
-        <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
+        <TrainerChatArea
+          messages={messages}
+          isSending={isSending}
+          chatAreaRef={chatAreaRef}
+        />
+        <TrainerChatInput
+          input={input}
+          isSending={isSending}
+          onChange={onInputChange}
+          onSubmit={onSubmit}
+        />
         <button
           type="button"
           onClick={onGenerateGoals}
@@ -473,10 +506,12 @@ const DesktopConsultView = ({
   onRestartConsultation,
   onCloseGoalComposer,
 }: ConsultViewProps) => {
-  const showGoalOverview = Boolean(goal)
-    && !isReconsulting
-    && proposals.length === 0
-    && !isGeneratingGoals;
+  // PCは左に会話、右に目標パネルを並べ、設定済みの場合は概要画面へ切り替える。
+  const showGoalOverview =
+    Boolean(goal) &&
+    !isReconsulting &&
+    proposals.length === 0 &&
+    !isGeneratingGoals;
 
   if (goal && showGoalOverview) {
     return (
@@ -503,9 +538,20 @@ const DesktopConsultView = ({
             onChange={onExerciseChange}
             desktop
           />
-          <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} desktop />
+          <TrainerChatArea
+            messages={messages}
+            isSending={isSending}
+            chatAreaRef={chatAreaRef}
+            desktop
+          />
         </div>
-        <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
+        <TrainerChatInput
+          input={input}
+          isSending={isSending}
+          onChange={onInputChange}
+          onSubmit={onSubmit}
+          desktop
+        />
       </section>
       <GoalPanel
         exercise={exercise}
@@ -538,16 +584,24 @@ const DesktopConsultView = ({
   );
 };
 
-export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => {
+export const ConsultScreen = ({
+  goal = null,
+  userName,
+}: ConsultScreenProps) => {
+  // 会話と目標設定の状態はここで管理し、モバイル・PCには同じ値を渡す。
   const router = useRouter();
   const [exercise, setExercise] = useState<Exercise>("ベンチプレス");
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [welcomeMessage("ベンチプレス")]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    welcomeMessage("ベンチプレス"),
+  ]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [activeGoal, setActiveGoal] = useState<GoalSummary | null>(goal);
   const [proposals, setProposals] = useState<GoalProposal[]>([]);
-  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(
+    null,
+  );
   const [isGeneratingGoals, setIsGeneratingGoals] = useState(false);
   const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [isChangingGoal, setIsChangingGoal] = useState(false);
@@ -558,11 +612,13 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
   const mobileChatAreaRef = useRef<HTMLDivElement>(null);
   const desktopChatAreaRef = useRef<HTMLDivElement>(null);
 
+  // APIには画面表示用のidや日時が不要なので、roleとcontentだけへ変換する。
   const apiMessages = useMemo(
     () => messages.map(({ role, content }) => ({ role, content })),
     [messages],
   );
 
+  // 新しいメッセージが追加されたら、両レイアウトのチャット末尾へ移動する。
   useEffect(() => {
     const scrollChatToBottom = (element: HTMLDivElement | null) => {
       element?.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
@@ -579,6 +635,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     return () => window.clearTimeout(timeoutId);
   }, [toastMessage]);
 
+  // ユーザーの入力を先に画面へ追加し、APIの返答を後から会話へ追加する。
   const sendMessage = async (event?: FormEvent) => {
     event?.preventDefault();
     const trimmed = input.trim();
@@ -645,6 +702,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     setCompletedTurns(0);
   };
 
+  // 1往復以上の会話をGeminiへ渡し、今日の目標候補を生成する。
   const generateGoals = async () => {
     if (completedTurns < 1 || isGeneratingGoals) return;
 
@@ -655,6 +713,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     setIsChangingGoal(false);
 
     try {
+      // 最低1秒表示することで、生成中の表示が一瞬で消えるのを防ぐ。
       const [response] = await Promise.all([
         fetch("/api/goals/proposals", {
           method: "POST",
@@ -675,13 +734,16 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
       setProposals(data.proposals);
     } catch (error) {
       setToastMessage(
-        error instanceof Error ? error.message : "目標候補を作成できませんでした",
+        error instanceof Error
+          ? error.message
+          : "目標候補を作成できませんでした",
       );
     } finally {
       setIsGeneratingGoals(false);
     }
   };
 
+  // 保存済みの候補を取得し、現在選択中の候補を初期選択にする。
   const changeGoal = async () => {
     if (!activeGoal || isGeneratingGoals) return;
 
@@ -698,7 +760,9 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
       };
 
       if (!response.ok || !data.proposals) {
-        throw new Error(data.error ?? "保存済みの目標候補を取得できませんでした");
+        throw new Error(
+          data.error ?? "保存済みの目標候補を取得できませんでした",
+        );
       }
 
       setProposals(data.proposals);
@@ -708,13 +772,16 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     } catch (error) {
       setIsChangingGoal(false);
       setToastMessage(
-        error instanceof Error ? error.message : "保存済みの目標候補を取得できませんでした",
+        error instanceof Error
+          ? error.message
+          : "保存済みの目標候補を取得できませんでした",
       );
     } finally {
       setIsGeneratingGoals(false);
     }
   };
 
+  // 設定済みの目標は残したまま、会話と候補だけを初期状態へ戻す。
   const restartConsultation = () => {
     setMessages([welcomeMessage(exercise)]);
     setInput("");
@@ -727,6 +794,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     setToastMessage("新しい相談を開始しました");
   };
 
+  // 新規設定はPOST、候補の選び直しはPATCHへ振り分ける。
   const saveGoal = async () => {
     const selectedGoal = proposals.find(({ id }) => id === selectedProposalId);
     if (!selectedGoal || isSavingGoal) return;
@@ -735,7 +803,9 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
 
     try {
       const response = await fetch(
-        isChangingGoal && activeGoal ? `/api/goals/${activeGoal.id}` : "/api/goals",
+        isChangingGoal && activeGoal
+          ? `/api/goals/${activeGoal.id}`
+          : "/api/goals",
         {
           method: isChangingGoal ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -765,7 +835,9 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
         throw new Error(data.error ?? "目標を保存できませんでした");
       }
 
-      const successMessage = isChangingGoal ? "目標を変更しました" : "目標を設定しました";
+      const successMessage = isChangingGoal
+        ? "目標を変更しました"
+        : "目標を設定しました";
 
       setActiveGoal({
         id: data.goal.id,
@@ -781,7 +853,9 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
       setToastMessage(successMessage);
       router.refresh();
     } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : "目標を保存できませんでした");
+      setToastMessage(
+        error instanceof Error ? error.message : "目標を保存できませんでした",
+      );
     } finally {
       setIsSavingGoal(false);
     }
@@ -789,6 +863,7 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
 
   const canGenerateGoals = completedTurns >= 1 && !isSending;
 
+  // スクロール対象のrefだけはSP・PCで分け、それ以外の状態と操作を共通化する。
   const viewProps: Omit<ConsultViewProps, "chatAreaRef"> = {
     exercise,
     messages,
@@ -820,8 +895,12 @@ export const ConsultScreen = ({ goal = null, userName }: ConsultScreenProps) => 
     <>
       <ResponsiveScreen
         userName={userName}
-        mobile={<MobileConsultView {...viewProps} chatAreaRef={mobileChatAreaRef} />}
-        desktop={<DesktopConsultView {...viewProps} chatAreaRef={desktopChatAreaRef} />}
+        mobile={
+          <MobileConsultView {...viewProps} chatAreaRef={mobileChatAreaRef} />
+        }
+        desktop={
+          <DesktopConsultView {...viewProps} chatAreaRef={desktopChatAreaRef} />
+        }
       />
       <div
         role="status"

@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 };
 
 const RootLayout = ({ children }: LayoutProps<"/">) => (
+  // htmlを最低画面高にし、子画面がh-fullやdvhを使える基準を作る。
   <html
     lang="ja"
     className={`${notoSansJp.variable} ${urbanist.variable} h-full antialiased`}

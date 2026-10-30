@@ -1,7 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
@@ -20,17 +27,16 @@ import type {
   TrainingRecordDraft,
 } from "../_types/report";
 
-
 const assets = {
   avatar: "/assets/avatarIcon.svg",
   logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
 } as const;
 
-
 const createId = () => crypto.randomUUID();
 
 const parseTrainingRecord = (message: string): TrainingRecordDraft | null => {
+  // 「60kg 10回 3セット」のような文章から、確認カード用の数値を取り出す。
   const weight = message.match(/(\d+(?:\.\d+)?)\s*kg/i)?.[1];
   const reps = message.match(/(\d+)\s*(?:回|レップ(?:ス)?)/)?.[1];
   const sets = message.match(/(\d+)\s*セット(?!目)/)?.[1] ?? "1";
@@ -125,11 +131,13 @@ const RecordDraftCard = ({
       <span className="text-[11px] font-bold text-[#5b8cff]">保存前</span>
     </div>
     <div className="mt-3 grid grid-cols-3 gap-2">
-      {([
-        ["weight", "重量", "kg"],
-        ["reps", "回数", "回"],
-        ["sets", "セット", "セット"],
-      ] as const).map(([field, label, unit]) => (
+      {(
+        [
+          ["weight", "重量", "kg"],
+          ["reps", "回数", "回"],
+          ["sets", "セット", "セット"],
+        ] as const
+      ).map(([field, label, unit]) => (
         <label key={field} className="min-w-0 text-[11px] text-[#98a2b3]">
           {label}
           <span className="mt-1 flex items-center gap-1 rounded-md border border-[#384255] bg-[#0b0d12] px-2 py-1.5 focus-within:border-[#2463eb]">
@@ -170,6 +178,7 @@ const RecordDraftCard = ({
 
 const TrainingRecordList = ({
   records,
+  isLoadingRecords,
   editingRecordId,
   editWeight,
   editReps,
@@ -180,6 +189,18 @@ const TrainingRecordList = ({
   onCancelEdit,
   onDelete,
 }: TrainingRecordListProps) => {
+  // 読み込み中・0件・編集・通常表示を一つの一覧で切り替える。
+  if (isLoadingRecords) {
+    return (
+      <div
+        className="rounded-lg border border-[#273142] bg-[#141822] p-4"
+        role="status"
+      >
+        <p className="text-[13px] text-[#98a2b3]">本日の記録を読み込み中…</p>
+      </div>
+    );
+  }
+
   if (records.length === 0) {
     return (
       <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
@@ -194,7 +215,10 @@ const TrainingRecordList = ({
         const isEditing = editingRecordId === record.id;
 
         return (
-          <div key={record.id} className="rounded-lg border border-[#273142] bg-[#141822] p-3">
+          <div
+            key={record.id}
+            className="rounded-lg border border-[#273142] bg-[#141822] p-3"
+          >
             {isEditing ? (
               <div className="grid grid-cols-2 gap-2">
                 <label className="text-[10px] text-[#98a2b3]">
@@ -271,6 +295,7 @@ const TrainingRecordList = ({
 const ReportSidePanel = ({
   goal = null,
   records,
+  isLoadingRecords,
   editingRecordId,
   editWeight,
   editReps,
@@ -286,7 +311,9 @@ const ReportSidePanel = ({
       <h2 className="text-lg font-bold text-[#f8fafc]">今日の目標</h2>
       <span
         className={`rounded-md px-2 py-1 text-[11px] font-bold ${
-          goal ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]" : "bg-[rgba(102,112,133,0.13)] text-[#98a2b3]"
+          goal
+            ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]"
+            : "bg-[rgba(102,112,133,0.13)] text-[#98a2b3]"
         }`}
       >
         {goal ? "設定済み" : "未設定"}
@@ -299,7 +326,9 @@ const ReportSidePanel = ({
           <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
           <p className="text-sm font-bold text-[#f8fafc]">{goal.title}</p>
         </div>
-        <p className="text-[13px] leading-[1.4] text-[#98a2b3]">{goal.detail}</p>
+        <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
+          {goal.detail}
+        </p>
       </div>
     ) : (
       <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
@@ -310,10 +339,13 @@ const ReportSidePanel = ({
     <div className="flex min-h-0 flex-1 flex-col gap-3 border-t border-[#273142] pt-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-bold text-[#f8fafc]">本日の記録</h2>
-        <span className="text-[11px] font-bold text-[#5b8cff]">{records.length}セット</span>
+        <span className="text-[11px] font-bold text-[#5b8cff]">
+          {records.length}セット
+        </span>
       </div>
       <TrainingRecordList
         records={records}
+        isLoadingRecords={isLoadingRecords}
         editingRecordId={editingRecordId}
         editWeight={editWeight}
         editReps={editReps}
@@ -335,6 +367,7 @@ const MobileReportView = ({
   input,
   isSending,
   isSavingRecord,
+  isLoadingRecords,
   isRecordPanelOpen,
   showExercisePicker,
   records,
@@ -359,12 +392,14 @@ const MobileReportView = ({
   onDeleteRecord,
   onSubmit,
 }: ReportViewProps) => (
+  // SPはヘッダー・本文・ボトムナビを縦に並べ、記録一覧を下部シートで開く。
   <div
     className="relative mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/report"
   >
     <MobileAppHeader />
 
+    {/* mainだけをスクロール対象にして、固定ヘッダーとナビを常に表示する。 */}
     <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4">
       <GoalSection goal={goal} />
       <ExerciseSelector
@@ -379,9 +414,15 @@ const MobileReportView = ({
         className="flex shrink-0 items-center justify-between rounded-lg border border-[#242c3b] bg-[#141822] px-3 py-2.5 text-left"
       >
         <span className="text-xs font-bold text-[#f8fafc]">本日の記録</span>
-        <span className="text-[11px] font-bold text-[#5b8cff]">{records.length}セット</span>
+        <span className="text-[11px] font-bold text-[#5b8cff]">
+          {records.length}セット
+        </span>
       </button>
-      <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} />
+      <TrainerChatArea
+        messages={messages}
+        isSending={isSending}
+        chatAreaRef={chatAreaRef}
+      />
       {recordDraft && (
         <RecordDraftCard
           draft={recordDraft}
@@ -391,7 +432,12 @@ const MobileReportView = ({
           onCancel={onCancelRecord}
         />
       )}
-      <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} />
+      <TrainerChatInput
+        input={input}
+        isSending={isSending}
+        onChange={onInputChange}
+        onSubmit={onSubmit}
+      />
     </main>
 
     <div
@@ -420,10 +466,13 @@ const MobileReportView = ({
       </div>
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-[#f8fafc]">本日の記録</h2>
-        <span className="text-[11px] font-bold text-[#5b8cff]">{records.length}セット</span>
+        <span className="text-[11px] font-bold text-[#5b8cff]">
+          {records.length}セット
+        </span>
       </div>
       <TrainingRecordList
         records={records}
+        isLoadingRecords={isLoadingRecords}
         editingRecordId={editingRecordId}
         editWeight={editWeight}
         editReps={editReps}
@@ -447,6 +496,7 @@ const DesktopReportView = ({
   input,
   isSending,
   isSavingRecord,
+  isLoadingRecords,
   showExercisePicker,
   records,
   recordDraft,
@@ -468,66 +518,80 @@ const DesktopReportView = ({
   onDeleteRecord,
   onSubmit,
 }: ReportViewProps) => (
+  // PCは左側をチャットと入力、右側を目標と本日の記録に分割する。
   <main className="flex min-h-0 flex-1">
-      <section className="flex min-w-0 flex-1 flex-col items-center justify-between px-10 py-6">
-        <div className="flex min-h-0 w-full max-w-[720px] flex-1 flex-col gap-5">
-          <ExerciseSelector
-            exercise={exercise}
-            isOpen={showExercisePicker}
-            onToggle={onExerciseToggle}
-            onChange={onExerciseChange}
-            desktop
+    <section className="flex min-w-0 flex-1 flex-col items-center justify-between px-10 py-6">
+      <div className="flex min-h-0 w-full max-w-[720px] flex-1 flex-col gap-5">
+        <ExerciseSelector
+          exercise={exercise}
+          isOpen={showExercisePicker}
+          onToggle={onExerciseToggle}
+          onChange={onExerciseChange}
+          desktop
+        />
+        <TrainerChatArea
+          messages={messages}
+          isSending={isSending}
+          chatAreaRef={chatAreaRef}
+          desktop
+        />
+      </div>
+      <div className="flex w-full max-w-[720px] flex-col gap-3">
+        {recordDraft && (
+          <RecordDraftCard
+            draft={recordDraft}
+            isSaving={isSavingRecord}
+            onChange={onRecordDraftChange}
+            onSave={onSaveRecord}
+            onCancel={onCancelRecord}
           />
-          <TrainerChatArea messages={messages} isSending={isSending} chatAreaRef={chatAreaRef} desktop />
-        </div>
-        <div className="flex w-full max-w-[720px] flex-col gap-3">
-          {recordDraft && (
-            <RecordDraftCard
-              draft={recordDraft}
-              isSaving={isSavingRecord}
-              onChange={onRecordDraftChange}
-              onSave={onSaveRecord}
-              onCancel={onCancelRecord}
-            />
-          )}
-          <TrainerChatInput input={input} isSending={isSending} onChange={onInputChange} onSubmit={onSubmit} desktop />
-        </div>
-      </section>
-      <ReportSidePanel
-        goal={goal}
-        exercise={exercise}
-        messages={messages}
-        input={input}
-        isSending={isSending}
-        isSavingRecord={isSavingRecord}
-        isRecordPanelOpen={false}
-        showExercisePicker={showExercisePicker}
-        records={records}
-        recordDraft={recordDraft}
-        editingRecordId={editingRecordId}
-        editWeight={editWeight}
-        editReps={editReps}
-        chatAreaRef={chatAreaRef}
-        onExerciseToggle={onExerciseToggle}
-        onExerciseChange={onExerciseChange}
-        onInputChange={onInputChange}
-        onRecordDraftChange={onRecordDraftChange}
-        onSaveRecord={onSaveRecord}
-        onCancelRecord={onCancelRecord}
-        onOpenRecordPanel={() => undefined}
-        onCloseRecordPanel={() => undefined}
-        onStartEditRecord={onStartEditRecord}
-        onEditWeightChange={onEditWeightChange}
-        onEditRepsChange={onEditRepsChange}
-        onSaveRecordEdit={onSaveRecordEdit}
-        onCancelRecordEdit={onCancelRecordEdit}
-        onDeleteRecord={onDeleteRecord}
-        onSubmit={onSubmit}
-      />
-    </main>
+        )}
+        <TrainerChatInput
+          input={input}
+          isSending={isSending}
+          onChange={onInputChange}
+          onSubmit={onSubmit}
+          desktop
+        />
+      </div>
+    </section>
+    <ReportSidePanel
+      goal={goal}
+      exercise={exercise}
+      messages={messages}
+      input={input}
+      isSending={isSending}
+      isSavingRecord={isSavingRecord}
+      isLoadingRecords={isLoadingRecords}
+      isRecordPanelOpen={false}
+      showExercisePicker={showExercisePicker}
+      records={records}
+      recordDraft={recordDraft}
+      editingRecordId={editingRecordId}
+      editWeight={editWeight}
+      editReps={editReps}
+      chatAreaRef={chatAreaRef}
+      onExerciseToggle={onExerciseToggle}
+      onExerciseChange={onExerciseChange}
+      onInputChange={onInputChange}
+      onRecordDraftChange={onRecordDraftChange}
+      onSaveRecord={onSaveRecord}
+      onCancelRecord={onCancelRecord}
+      onOpenRecordPanel={() => undefined}
+      onCloseRecordPanel={() => undefined}
+      onStartEditRecord={onStartEditRecord}
+      onEditWeightChange={onEditWeightChange}
+      onEditRepsChange={onEditRepsChange}
+      onSaveRecordEdit={onSaveRecordEdit}
+      onCancelRecordEdit={onCancelRecordEdit}
+      onDeleteRecord={onDeleteRecord}
+      onSubmit={onSubmit}
+    />
+  </main>
 );
 
 const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
+  // 記録の状態とAPI処理はここに集約し、モバイル・PCで共有する。
   const router = useRouter();
   const defaultExercise: Exercise = goal ? "ベンチプレス" : "スクワット";
   const [exercise, setExercise] = useState<Exercise>(defaultExercise);
@@ -537,10 +601,13 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isSavingRecord, setIsSavingRecord] = useState(false);
+  const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const [isRecordPanelOpen, setIsRecordPanelOpen] = useState(false);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [records, setRecords] = useState<TrainingRecordItem[]>([]);
-  const [recordDraft, setRecordDraft] = useState<TrainingRecordDraft | null>(null);
+  const [recordDraft, setRecordDraft] = useState<TrainingRecordDraft | null>(
+    null,
+  );
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [editWeight, setEditWeight] = useState("");
   const [editReps, setEditReps] = useState("");
@@ -553,6 +620,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     [messages],
   );
 
+  // 選択した種目の「今日の記録」だけをAPIから取得する。
   const fetchRecords = useCallback(async (targetExercise: Exercise) => {
     const response = await fetch(
       `/api/training-records?exercise=${encodeURIComponent(targetExercise)}`,
@@ -569,10 +637,19 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     return data.records;
   }, []);
 
-  const loadRecords = useCallback(async (targetExercise: Exercise) => {
-    const nextRecords = await fetchRecords(targetExercise);
-    setRecords(nextRecords);
-  }, [fetchRecords]);
+  // 登録・更新・削除後も同じ関数で一覧を再取得する。
+  const loadRecords = useCallback(
+    async (targetExercise: Exercise) => {
+      setIsLoadingRecords(true);
+      try {
+        const nextRecords = await fetchRecords(targetExercise);
+        setRecords(nextRecords);
+      } finally {
+        setIsLoadingRecords(false);
+      }
+    },
+    [fetchRecords],
+  );
 
   useEffect(() => {
     const scrollChatToBottom = (element: HTMLDivElement | null) => {
@@ -593,9 +670,14 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
       .catch((error: unknown) => {
         if (!ignore) {
           setToastMessage(
-            error instanceof Error ? error.message : "記録を取得できませんでした",
+            error instanceof Error
+              ? error.message
+              : "記録を取得できませんでした",
           );
         }
+      })
+      .finally(() => {
+        if (!ignore) setIsLoadingRecords(false);
       });
 
     return () => {
@@ -610,6 +692,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     return () => window.clearTimeout(timeoutId);
   }, [toastMessage]);
 
+  // AIへの報告と、正規表現による記録候補の作成を同時に行う。
   const sendMessage = async (event?: FormEvent) => {
     event?.preventDefault();
     const trimmed = input.trim();
@@ -638,7 +721,10 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
         body: JSON.stringify({
           exercise,
           mode: "report",
-          messages: [...apiMessages, { role: "user" as const, content: trimmed }],
+          messages: [
+            ...apiMessages,
+            { role: "user" as const, content: trimmed },
+          ],
         }),
       });
 
@@ -671,6 +757,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   };
 
   const handleExerciseChange = (next: Exercise) => {
+    setIsLoadingRecords(true);
     setExercise(next);
     setShowExercisePicker(false);
     setMessages([welcomeMessage(next)]);
@@ -683,9 +770,12 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     field: keyof TrainingRecordDraft,
     value: string,
   ) => {
-    setRecordDraft((current) => current ? { ...current, [field]: value } : current);
+    setRecordDraft((current) =>
+      current ? { ...current, [field]: value } : current,
+    );
   };
 
+  // 確認カードの文字列を数値へ変換してから保存APIへ送る。
   const saveRecord = async () => {
     if (!recordDraft || isSavingRecord) return;
 
@@ -716,7 +806,9 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
       setToastMessage("トレーニングを記録しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : "記録を保存できませんでした");
+      setToastMessage(
+        error instanceof Error ? error.message : "記録を保存できませんでした",
+      );
     } finally {
       setIsSavingRecord(false);
     }
@@ -734,6 +826,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     setEditReps("");
   };
 
+  // 編集対象のidをURLへ含め、変更した重量と回数だけを更新する。
   const saveRecordEdit = async () => {
     if (!editingRecordId) return;
 
@@ -760,11 +853,16 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
       setToastMessage("記録を更新しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : "記録を更新できませんでした");
+      setToastMessage(
+        error instanceof Error ? error.message : "記録を更新できませんでした",
+      );
     }
   };
 
+  // 誤操作を防ぐため、確認後に削除して一覧を読み直す。
   const deleteRecord = async (recordId: string) => {
+    if (!window.confirm("このトレーニング記録を削除しますか？")) return;
+
     try {
       const response = await fetch(`/api/training-records/${recordId}`, {
         method: "DELETE",
@@ -779,10 +877,13 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
       setToastMessage("記録を削除しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : "記録を削除できませんでした");
+      setToastMessage(
+        error instanceof Error ? error.message : "記録を削除できませんでした",
+      );
     }
   };
 
+  // refだけは画面ごとに異なるため、それ以外を共通Propsとしてまとめる。
   const viewProps: Omit<ReportViewProps, "chatAreaRef"> = {
     goal,
     exercise,
@@ -790,6 +891,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     input,
     isSending,
     isSavingRecord,
+    isLoadingRecords,
     isRecordPanelOpen,
     showExercisePicker,
     records,
@@ -818,8 +920,12 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     <>
       <ResponsiveScreen
         userName={userName}
-        mobile={<MobileReportView {...viewProps} chatAreaRef={mobileChatAreaRef} />}
-        desktop={<DesktopReportView {...viewProps} chatAreaRef={desktopChatAreaRef} />}
+        mobile={
+          <MobileReportView {...viewProps} chatAreaRef={mobileChatAreaRef} />
+        }
+        desktop={
+          <DesktopReportView {...viewProps} chatAreaRef={desktopChatAreaRef} />
+        }
       />
       <div
         role="status"

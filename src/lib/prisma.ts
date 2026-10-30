@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as typeof globalThis & {
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
-// Reuse the client across development hot reloads.
+// 開発中の再読み込みで接続が増えないよう、Prisma Clientを再利用する。
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }

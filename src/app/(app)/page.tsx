@@ -11,23 +11,39 @@ const Home = async () => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const [activeGoal, dataByExercise] = user
-    ? await Promise.all([
-      getActiveGoal(user.id),
-      getProgressDataByExercise(user.id),
-    ])
-    : [null, null];
+  // 目標と成長データは独立しているため並列取得し、片方が失敗してもホームを表示する。
+  const [goalResult, progressResult] = user
+    ? await Promise.allSettled([
+        getActiveGoal(user.id),
+        getProgressDataByExercise(user.id),
+      ])
+    : [];
+  const activeGoal =
+    goalResult?.status === "fulfilled" ? goalResult.value : null;
+  const dataByExercise =
+    progressResult?.status === "fulfilled" ? progressResult.value : null;
+
+  if (goalResult?.status === "rejected") {
+    console.error("[home:goal]", goalResult.reason);
+  }
+  if (progressResult?.status === "rejected") {
+    console.error("[home:progress]", progressResult.reason);
+  }
   const growthReport = dataByExercise
     ? getBestProgressData(dataByExercise)
     : null;
 
   return (
     <FitnessAppHome
-      goal={activeGoal ? {
-        name: activeGoal.title,
-        statusLabel: "設定済み",
-        description: activeGoal.description,
-      } : null}
+      goal={
+        activeGoal
+          ? {
+              name: activeGoal.title,
+              statusLabel: "設定済み",
+              description: activeGoal.description,
+            }
+          : null
+      }
       growthReport={growthReport}
     />
   );

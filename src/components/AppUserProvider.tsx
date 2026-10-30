@@ -8,7 +8,10 @@ import type {
 
 const AppUserContext = createContext<AppUserContextValue | null>(null);
 
-export const AppUserProvider = ({ children, userName }: AppUserProviderProps) => (
+export const AppUserProvider = ({
+  children,
+  userName,
+}: AppUserProviderProps) => (
   <AppUserContext.Provider value={{ userName }}>
     {children}
   </AppUserContext.Provider>

@@ -1,4 +1,9 @@
-export const EXERCISES = ["ベンチプレス", "スクワット", "デッドリフト", "ショルダープレス"] as const;
+export const EXERCISES = [
+  "ベンチプレス",
+  "スクワット",
+  "デッドリフト",
+  "ショルダープレス",
+] as const;
 
 export type Exercise = (typeof EXERCISES)[number];
 

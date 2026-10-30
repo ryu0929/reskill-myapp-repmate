@@ -17,7 +17,6 @@ import type {
   ProgressViewProps,
 } from "../_types/progress";
 
-
 const assets = {
   avatar: "/assets/avatarIcon.svg",
   aiAvatar: "/assets/consult/ai-avatar.png",
@@ -90,35 +89,59 @@ const OneRepMaxCard = ({
   estimatedOneRepMax,
   trendRate,
   desktop = false,
-}: OneRepMaxCardProps) => (
-  <section
-    className={`w-full shrink-0 border bg-gradient-to-r from-[#141822] to-[#0b0d12] ${
-      desktop
-        ? "min-h-[216px] rounded-xl border-[#273142] bg-[#161c27] p-6"
-        : "rounded-[10px] border-[#242c3b] p-4"
-    }`}
-  >
-    <div className="flex items-center justify-between">
-      <h2 className={`${desktop ? "text-sm" : "text-xs"} font-bold text-[#9ca3af]`}>
-        推定 1RM
-      </h2>
-      <div className="flex items-center gap-1 rounded-md bg-[rgba(16,185,129,0.13)] px-2 py-1">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img alt="" className="size-3" src={assets.trendingUp} />
-        <span className="font-[family-name:var(--font-urbanist)] text-xs font-bold text-[#10b981]">
-          +{trendRate.toFixed(1)}%
-        </span>
+}: OneRepMaxCardProps) => {
+  const hasRecords = estimatedOneRepMax > 0;
+
+  return (
+    <section
+      className={`w-full shrink-0 border bg-gradient-to-r from-[#141822] to-[#0b0d12] ${
+        desktop
+          ? "min-h-[216px] rounded-xl border-[#273142] bg-[#161c27] p-6"
+          : "rounded-[10px] border-[#242c3b] p-4"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <h2
+          className={`${desktop ? "text-sm" : "text-xs"} font-bold text-[#9ca3af]`}
+        >
+          推定 1RM
+        </h2>
+        <div className="flex items-center gap-1 rounded-md bg-[rgba(16,185,129,0.13)] px-2 py-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt="" className="size-3" src={assets.trendingUp} />
+          <span className="font-[family-name:var(--font-urbanist)] text-xs font-bold text-[#10b981]">
+            {hasRecords
+              ? `${trendRate >= 0 ? "+" : ""}${trendRate.toFixed(1)}%`
+              : "記録なし"}
+          </span>
+        </div>
       </div>
-    </div>
-    <p className={`font-[family-name:var(--font-urbanist)] font-bold text-[#f9fafb] ${desktop ? "mt-4" : "mt-3"}`}>
-      <span className={desktop ? "text-5xl" : "text-4xl"}>{formatWeight(estimatedOneRepMax)} </span>
-      <span className={`${desktop ? "text-xl" : "text-lg"} text-[#9ca3af]`}>kg</span>
-    </p>
-    <p className={`font-bold text-[#6b7280] ${desktop ? "mt-4 text-xs" : "mt-2 text-[11px]"}`}>
-      過去30日間の推移
-    </p>
-  </section>
-);
+      <p
+        className={`font-[family-name:var(--font-urbanist)] font-bold text-[#f9fafb] ${desktop ? "mt-4" : "mt-3"}`}
+      >
+        {hasRecords ? (
+          <>
+            <span className={desktop ? "text-5xl" : "text-4xl"}>
+              {formatWeight(estimatedOneRepMax)}{" "}
+            </span>
+            <span
+              className={`${desktop ? "text-xl" : "text-lg"} text-[#9ca3af]`}
+            >
+              kg
+            </span>
+          </>
+        ) : (
+          <span className={desktop ? "text-3xl" : "text-2xl"}>記録なし</span>
+        )}
+      </p>
+      <p
+        className={`font-bold text-[#6b7280] ${desktop ? "mt-4 text-xs" : "mt-2 text-[11px]"}`}
+      >
+        過去90日間の記録
+      </p>
+    </section>
+  );
+};
 
 const ProgressChart = ({
   points,
@@ -127,6 +150,7 @@ const ProgressChart = ({
   points: ChartPoint[];
   desktop?: boolean;
 }) => {
+  // 記録値をSVG座標へ変換し、画面幅に応じた折れ線グラフを描画する。
   const values = points.map((point) => point.value);
   const max = Math.max(...values);
   const min = Math.min(...values);
@@ -154,15 +178,45 @@ const ProgressChart = ({
     >
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold text-[#f9fafb]">1RM 推移グラフ</h2>
-        <span className={`${desktop ? "text-xs" : "text-[11px]"} font-bold text-[#9ca3af]`}>
-          過去3ヶ月
+        <span
+          className={`${desktop ? "text-xs" : "text-[11px]"} font-bold text-[#9ca3af]`}
+        >
+          直近3回の記録日
         </span>
       </div>
-      <div className={`${desktop ? "mt-4 h-[135px]" : "mt-4 h-[150px]"} w-full`}>
-        <svg aria-hidden className={`${desktop ? "h-[110px]" : "h-[122px]"} w-full`} viewBox={`0 0 ${viewWidth} 122`} preserveAspectRatio="none">
-          <line x1="0" x2={desktop ? 420 : 263} y1="17" y2="17" stroke="#273142" strokeDasharray="4 4" />
-          <line x1="0" x2={desktop ? 420 : 263} y1="50" y2="50" stroke="#273142" strokeDasharray="4 4" />
-          <line x1="0" x2={desktop ? 420 : 263} y1="88" y2="88" stroke="#273142" strokeDasharray="4 4" />
+      <div
+        className={`${desktop ? "mt-4 h-[135px]" : "mt-4 h-[150px]"} w-full`}
+      >
+        <svg
+          aria-hidden
+          className={`${desktop ? "h-[110px]" : "h-[122px]"} w-full`}
+          viewBox={`0 0 ${viewWidth} 122`}
+          preserveAspectRatio="none"
+        >
+          <line
+            x1="0"
+            x2={desktop ? 420 : 263}
+            y1="17"
+            y2="17"
+            stroke="#273142"
+            strokeDasharray="4 4"
+          />
+          <line
+            x1="0"
+            x2={desktop ? 420 : 263}
+            y1="50"
+            y2="50"
+            stroke="#273142"
+            strokeDasharray="4 4"
+          />
+          <line
+            x1="0"
+            x2={desktop ? 420 : 263}
+            y1="88"
+            y2="88"
+            stroke="#273142"
+            strokeDasharray="4 4"
+          />
           <text x={labelX} y="17" fill="#6b7280" fontSize="10" fontWeight="700">
             {formatWeight(max)}kg
           </text>
@@ -184,12 +238,21 @@ const ProgressChart = ({
             <g key={point.label}>
               <circle cx={point.x} cy={point.y} fill="#00e5ff" r="4" />
               {index === plotPoints.length - 1 && (
-                <circle cx={point.x} cy={point.y} fill="none" r="7" stroke="#1856ed" strokeWidth="3" />
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  fill="none"
+                  r="7"
+                  stroke="#1856ed"
+                  strokeWidth="3"
+                />
               )}
             </g>
           ))}
         </svg>
-        <div className={`${desktop ? "px-8 pr-[60px]" : "px-2"} flex justify-between text-[11px] font-bold text-[#9ca3af]`}>
+        <div
+          className={`${desktop ? "px-8 pr-[60px]" : "px-2"} flex justify-between text-[11px] font-bold text-[#9ca3af]`}
+        >
           {points.map((point) => (
             <span key={point.label}>{point.label}</span>
           ))}
@@ -215,6 +278,9 @@ const PersonalBestsCard = ({
   >
     <h2 className="text-sm font-bold text-[#f9fafb]">自己ベスト</h2>
     <div className={`${desktop ? "mt-4 gap-3" : "mt-4"} flex flex-col`}>
+      {records.length === 0 && (
+        <p className="text-[13px] text-[#9ca3af]">記録はまだありません</p>
+      )}
       {records.map((record, index) => (
         <div
           key={record.label}
@@ -226,7 +292,9 @@ const PersonalBestsCard = ({
             <p className="font-[family-name:var(--font-urbanist)] text-sm font-bold text-[#f9fafb]">
               {record.label}
             </p>
-            <p className="text-[11px] font-bold text-[#6b7280]">{record.date}</p>
+            <p className="text-[11px] font-bold text-[#6b7280]">
+              {record.date}
+            </p>
           </div>
           <p
             className={`font-[family-name:var(--font-urbanist)] text-lg font-bold ${
@@ -257,11 +325,19 @@ const AiAnalysisCard = ({
   >
     <div className="flex items-center gap-2.5">
       <div className="relative size-8 shrink-0 overflow-hidden rounded-2xl">
-        <Image src={assets.aiAvatar} alt="" fill className="object-cover" sizes="32px" />
+        <Image
+          src={assets.aiAvatar}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="32px"
+        />
       </div>
       <h2 className="text-sm font-bold text-[#f9fafb]">AIトレーナーの分析</h2>
     </div>
-    <p className={`${desktop ? "mt-5" : "mt-3"} text-[13px] leading-[1.6] text-[#9ca3af]`}>
+    <p
+      className={`${desktop ? "mt-5" : "mt-3"} text-[13px] leading-[1.6] text-[#9ca3af]`}
+    >
       {comment}
     </p>
   </section>
@@ -274,6 +350,7 @@ const MobileProgressView = ({
   onExerciseToggle,
   onExerciseChange,
 }: ProgressViewProps) => (
+  // 各カードを縮ませず、端末の高さを超えた分はmain内で縦スクロールする。
   <div
     className="mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
     data-name="/progress"
@@ -286,7 +363,10 @@ const MobileProgressView = ({
         onToggle={onExerciseToggle}
         onChange={onExerciseChange}
       />
-      <OneRepMaxCard estimatedOneRepMax={data.estimatedOneRepMax} trendRate={data.trendRate} />
+      <OneRepMaxCard
+        estimatedOneRepMax={data.estimatedOneRepMax}
+        trendRate={data.trendRate}
+      />
       <ProgressChart points={data.chart} />
       <PersonalBestsCard records={data.personalBests} />
       <AiAnalysisCard comment={data.aiComment} />
@@ -302,21 +382,26 @@ const DesktopProgressView = ({
   onExerciseToggle,
   onExerciseChange,
 }: ProgressViewProps) => (
+  // PCでは4枚の情報カードを2列グリッドで一覧できるようにする。
   <main className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-10">
-      <ExerciseSelector
-        exercise={exercise}
-        isOpen={showExercisePicker}
-        onToggle={onExerciseToggle}
-        onChange={onExerciseChange}
+    <ExerciseSelector
+      exercise={exercise}
+      isOpen={showExercisePicker}
+      onToggle={onExerciseToggle}
+      onChange={onExerciseChange}
+      desktop
+    />
+    <section className="grid grid-cols-2 gap-6">
+      <OneRepMaxCard
+        estimatedOneRepMax={data.estimatedOneRepMax}
+        trendRate={data.trendRate}
         desktop
       />
-      <section className="grid grid-cols-2 gap-6">
-        <OneRepMaxCard estimatedOneRepMax={data.estimatedOneRepMax} trendRate={data.trendRate} desktop />
-        <ProgressChart points={data.chart} desktop />
-        <PersonalBestsCard records={data.personalBests} desktop />
-        <AiAnalysisCard comment={data.aiComment} desktop />
-      </section>
-    </main>
+      <ProgressChart points={data.chart} desktop />
+      <PersonalBestsCard records={data.personalBests} desktop />
+      <AiAnalysisCard comment={data.aiComment} desktop />
+    </section>
+  </main>
 );
 
 const ProgressScreen = ({
@@ -343,7 +428,7 @@ const ProgressScreen = ({
 
   return (
     <ResponsiveScreen
-    userName={userName}
+      userName={userName}
       mobile={<MobileProgressView {...viewProps} />}
       desktop={<DesktopProgressView {...viewProps} />}
     />

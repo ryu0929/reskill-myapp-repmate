@@ -1,7 +1,12 @@
 import type { FormEvent, RefObject } from "react";
 import type { ChatMessage } from "@/lib/chat-types";
 
-export const EXERCISES = ["ベンチプレス", "スクワット", "デッドリフト", "ショルダープレス"] as const;
+export const EXERCISES = [
+  "ベンチプレス",
+  "スクワット",
+  "デッドリフト",
+  "ショルダープレス",
+] as const;
 
 export type Exercise = (typeof EXERCISES)[number];
 

@@ -11,12 +11,16 @@ const ConsultPage = async () => {
 
   return (
     <ConsultScreen
-      goal={activeGoal ? {
-        id: activeGoal.id,
-        name: activeGoal.title,
-        statusLabel: "設定済み",
-        description: activeGoal.description,
-      } : null}
+      goal={
+        activeGoal
+          ? {
+              id: activeGoal.id,
+              name: activeGoal.title,
+              statusLabel: "設定済み",
+              description: activeGoal.description,
+            }
+          : null
+      }
     />
   );
 };

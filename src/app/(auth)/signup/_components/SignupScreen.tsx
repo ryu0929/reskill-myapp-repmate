@@ -17,6 +17,7 @@ const assets = {
   lock: "/assets/auth/lock.svg",
 } as const;
 
+// アカウント作成前に必要な名前・性別・メール・パスワードを検証する。
 const signupSchema = z.object({
   name: z.string().min(1, "名前を入力してください"),
   gender: z.enum(genderOptions),
@@ -24,21 +25,33 @@ const signupSchema = z.object({
   password: z.string().min(8, "パスワードは8文字以上で入力してください"),
 });
 
+// Zodスキーマを元に、フォーム全体の値の型を自動生成する。
 type SignupFormValues = z.infer<typeof signupSchema>;
 
-
-const AuthInput = ({ label, type, placeholder, icon, error, ...inputProps }: AuthInputProps) => (
+// registerから渡される入力属性も受け取れる、サインアップ用の共通入力部品。
+const AuthInput = ({
+  label,
+  type,
+  placeholder,
+  icon,
+  error,
+  ...inputProps
+}: AuthInputProps) => (
   <label className="flex w-full flex-col gap-2">
     <span className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">
       {label}
     </span>
     <span className="flex h-[50px] w-full items-center gap-3 rounded-[14px] border border-[#242c3b] bg-[#141822] px-4 min-[769px]:h-[54px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" className="size-[19px] shrink-0 min-[769px]:size-5" src={assets[icon]} />
+      <img
+        alt=""
+        className="size-[19px] shrink-0 min-[769px]:size-5"
+        src={assets[icon]}
+      />
+      {/* name・onChange・onBlur・refを渡し、React Hook Formとinputを接続する。 */}
       <input
         type={type}
         placeholder={placeholder}
-        // registerで渡された属性などを展開
         {...inputProps}
         className="min-w-0 flex-1 bg-transparent text-sm text-[#f9fafb] outline-none placeholder:text-[#9ca3af] min-[769px]:text-[15px]"
       />
@@ -47,14 +60,14 @@ const AuthInput = ({ label, type, placeholder, icon, error, ...inputProps }: Aut
   </label>
 );
 
-
 const GenderSelector = ({
-  value, 
-  onChange
+  value,
+  onChange,
 }: {
-  value: Gender; 
+  value: Gender;
   onChange: (value: Gender) => void;
 }) => {
+  // input要素ではない独自ボタンUIなので、現在値と変更関数をPropsで受け取る。
   return (
     <div className="flex w-full flex-col gap-2">
       <p className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">
@@ -86,26 +99,28 @@ const GenderSelector = ({
   );
 };
 
-
 const SignupForm = () => {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
 
+  // registerは通常のinput、controlはControllerを使う独自UIの管理に使用する。
   const {
-    register, 
-    control, 
-    handleSubmit, 
+    register,
+    control,
+    handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormValues>({
+    // Zodの検証結果をReact Hook Formのerrorsへ連携する。
     resolver: zodResolver(signupSchema),
     defaultValues: {
       name: "",
       gender: "男性",
       email: "",
       password: "",
-    }
+    },
   });
 
+  // 全フィールドが検証を通過した場合だけSupabaseへ登録情報を送る。
   const onSubmit = async (values: SignupFormValues) => {
     setServerError("");
 
@@ -115,11 +130,12 @@ const SignupForm = () => {
       email: values.email,
       password: values.password,
       options: {
+        // nameとgenderはAuthのユーザーメタデータとして保存し、プロフィール作成時に利用する。
         data: {
           name: values.name,
           gender: values.gender,
-        }
-      }
+        },
+      },
     });
 
     if (error) {
@@ -127,17 +143,19 @@ const SignupForm = () => {
       return;
     }
 
+    // 登録後はホームへ移動し、最新の認証状態でServer Componentを再描画する。
     router.push("/");
     router.refresh();
   };
 
-
   return (
-    <form 
+    // handleSubmitがZod検証後にonSubmitを呼び、二重送信状態も管理する。
+    <form
       onSubmit={handleSubmit(onSubmit)}
       className="flex w-full flex-col gap-3 min-[769px]:gap-4"
     >
-      <AuthInput 
+      {/* registerの引数が、フォーム値のどの項目として管理するかを表す。 */}
+      <AuthInput
         label="名前"
         type="text"
         placeholder="名前を入力してください"
@@ -146,14 +164,12 @@ const SignupForm = () => {
         error={errors.name?.message}
       />
 
+      {/* ボタンで構成した性別UIは、Controllerでgenderフィールドへ接続する。 */}
       <Controller
         name="gender"
         control={control}
         render={({ field }) => (
-          <GenderSelector
-            value={field.value}
-            onChange={field.onChange}
-          />
+          <GenderSelector value={field.value} onChange={field.onChange} />
         )}
       />
 
@@ -175,10 +191,11 @@ const SignupForm = () => {
         error={errors.password?.message}
       />
 
+      {/* Supabaseから返った登録エラーはフォーム共通のエラーとして表示する。 */}
       {serverError && (
         <p role="alert" className="text-sm text-red-400">
-        {serverError}
-      </p>
+          {serverError}
+        </p>
       )}
 
       <button
@@ -188,12 +205,12 @@ const SignupForm = () => {
       >
         {isSubmitting ? "登録中..." : "アカウントを作成"}
       </button>
-
     </form>
   );
 };
 
 export const SignupScreen = () => (
+  // SignupFormにロゴ、説明、ログイン画面への導線を組み合わせる。
   <main className="flex min-h-screen items-center justify-center bg-[#050608] p-4">
     <section
       className="flex min-h-[812px] w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#0b0d12] px-10 min-[769px]:min-h-[calc(100vh-32px)] min-[769px]:max-w-[1440px] min-[769px]:px-5"
@@ -202,7 +219,11 @@ export const SignupScreen = () => (
       <div className="flex w-full min-[769px]:max-w-[420px] flex-col items-center gap-5 pb-8 pt-10">
         <div className="relative h-[52px] w-[120px] shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="RepMate" className="block size-full max-w-none" src={assets.logo} />
+          <img
+            alt="RepMate"
+            className="block size-full max-w-none"
+            src={assets.logo}
+          />
         </div>
         <div className="flex w-full flex-col items-center gap-2 text-center">
           <p className="font-[family-name:var(--font-urbanist)] text-[11px] font-bold uppercase tracking-[0.88px] text-[#1856ed]">
