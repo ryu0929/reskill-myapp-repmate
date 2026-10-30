@@ -12,6 +12,7 @@ export type Exercise = (typeof EXERCISES)[number];
 
 export type GoalSummary = {
   id: string;
+  exercise: string;
   name: string;
   statusLabel: string;
   description: string;
@@ -50,8 +51,10 @@ export type GoalChangeActionsProps = {
 
 export type ConfiguredGoalViewProps = {
   goal: GoalSummary;
+  isDeletingGoal: boolean;
   onChangeGoal: () => void;
   onRestartConsultation: () => void;
+  onDeleteGoal: () => void;
   desktop?: boolean;
 };
 
@@ -67,6 +70,7 @@ export type ConsultViewProps = {
   selectedProposalId: string | null;
   isGeneratingGoals: boolean;
   isSavingGoal: boolean;
+  isDeletingGoal: boolean;
   isChangingGoal: boolean;
   isReconsulting: boolean;
   isGoalComposerOpen: boolean;
@@ -80,6 +84,7 @@ export type ConsultViewProps = {
   onSaveGoal: () => void;
   onChangeGoal: () => void;
   onRestartConsultation: () => void;
+  onDeleteGoal: () => void;
   onCloseGoalComposer: () => void;
 };
 
@@ -90,6 +95,7 @@ export type GoalComposerContentProps = Pick<
   | "selectedProposalId"
   | "isGeneratingGoals"
   | "isSavingGoal"
+  | "isDeletingGoal"
   | "isChangingGoal"
   | "isReconsulting"
   | "canGenerateGoals"
@@ -98,4 +104,5 @@ export type GoalComposerContentProps = Pick<
   | "onSaveGoal"
   | "onChangeGoal"
   | "onRestartConsultation"
+  | "onDeleteGoal"
 >;

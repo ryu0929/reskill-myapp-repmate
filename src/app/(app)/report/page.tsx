@@ -14,6 +14,8 @@ const ReportPage = async () => {
       goal={
         activeGoal
           ? {
+              id: activeGoal.id,
+              exercise: activeGoal.exerciseName,
               title: activeGoal.title,
               detail: activeGoal.description,
             }

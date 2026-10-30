@@ -12,6 +12,8 @@ export const EXERCISES = [
 export type Exercise = (typeof EXERCISES)[number];
 
 export type GoalSummary = {
+  id: string;
+  exercise: string;
   title: string;
   detail: string;
 };
@@ -50,6 +52,7 @@ export type ReportViewProps = {
   input: string;
   isSending: boolean;
   isSavingRecord: boolean;
+  isDeletingGoal: boolean;
   isLoadingRecords: boolean;
   isRecordPanelOpen: boolean;
   showExercisePicker: boolean;
@@ -77,6 +80,7 @@ export type ReportViewProps = {
   onCancelRecordEdit: () => void;
   onDeleteRecord: (recordId: string) => void;
   onAddRecord: () => void;
+  onDeleteGoal: () => void;
   onSubmit: (event?: FormEvent) => void;
 };
 

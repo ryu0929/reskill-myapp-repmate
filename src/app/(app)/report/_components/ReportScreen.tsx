@@ -51,7 +51,15 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
   createdAt: new Date().toISOString(),
 });
 
-const GoalSection = ({ goal }: { goal?: GoalSummary | null }) => {
+const GoalSection = ({
+  goal,
+  isDeletingGoal,
+  onDeleteGoal,
+}: {
+  goal?: GoalSummary | null;
+  isDeletingGoal: boolean;
+  onDeleteGoal: () => void;
+}) => {
   if (!goal) {
     return (
       <div className="flex w-full shrink-0 items-start py-2">
@@ -67,12 +75,18 @@ const GoalSection = ({ goal }: { goal?: GoalSummary | null }) => {
           <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
           <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
         </div>
-        <span className="shrink-0 text-[11px] font-bold text-[#10b981]">
-          設定済み
-        </span>
+        <button
+          type="button"
+          onClick={onDeleteGoal}
+          disabled={isDeletingGoal}
+          className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
+        >
+          {isDeletingGoal ? "削除中…" : "削除"}
+        </button>
       </div>
-      <p className="mt-3 text-[13px] leading-[1.4] text-[#9ca3af]">
-        {goal.title} — {goal.detail}
+      <p className="mt-3 text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
+      <p className="mt-2 text-[13px] leading-[1.4] text-[#9ca3af]">
+        {goal.detail}
       </p>
     </section>
   );
@@ -308,6 +322,7 @@ const AddRecordButton = ({ onClick }: { onClick: () => void }) => (
 const ReportSidePanel = ({
   goal = null,
   records,
+  isDeletingGoal,
   isLoadingRecords,
   editingRecordId,
   editWeight,
@@ -319,26 +334,33 @@ const ReportSidePanel = ({
   onCancelRecordEdit,
   onDeleteRecord,
   onAddRecord,
+  onDeleteGoal,
 }: ReportViewProps) => (
   <aside className="flex h-full w-[380px] shrink-0 flex-col gap-5 border-l border-[#273142] bg-[#111620] p-6">
     <div className="flex items-center justify-between gap-3">
       <h2 className="text-lg font-bold text-[#f8fafc]">今日の目標</h2>
-      <span
-        className={`rounded-md px-2 py-1 text-[11px] font-bold ${
-          goal
-            ? "bg-[rgba(16,185,129,0.13)] text-[#10b981]"
-            : "bg-[rgba(102,112,133,0.13)] text-[#98a2b3]"
-        }`}
-      >
-        {goal ? "設定済み" : "未設定"}
-      </span>
+      {!goal && (
+        <span className="rounded-md bg-[rgba(102,112,133,0.13)] px-2 py-1 text-[11px] font-bold text-[#98a2b3]">
+          未設定
+        </span>
+      )}
     </div>
 
     {goal ? (
       <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-          <p className="text-sm font-bold text-[#f8fafc]">{goal.title}</p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
+            <p className="text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onDeleteGoal}
+            disabled={isDeletingGoal}
+            className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
+          >
+            {isDeletingGoal ? "削除中…" : "削除"}
+          </button>
         </div>
         <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
           {goal.detail}
@@ -382,6 +404,7 @@ const MobileReportView = ({
   input,
   isSending,
   isSavingRecord,
+  isDeletingGoal,
   isLoadingRecords,
   isRecordPanelOpen,
   showExercisePicker,
@@ -406,6 +429,7 @@ const MobileReportView = ({
   onCancelRecordEdit,
   onDeleteRecord,
   onAddRecord,
+  onDeleteGoal,
   onSubmit,
 }: ReportViewProps) => (
   // SPはヘッダー・本文・ボトムナビを縦に並べ、記録一覧を下部シートで開く。
@@ -417,7 +441,11 @@ const MobileReportView = ({
 
     {/* mainだけをスクロール対象にして、固定ヘッダーとナビを常に表示する。 */}
     <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4">
-      <GoalSection goal={goal} />
+      <GoalSection
+        goal={goal}
+        isDeletingGoal={isDeletingGoal}
+        onDeleteGoal={onDeleteGoal}
+      />
       <ExerciseSelector
         exercise={exercise}
         isOpen={showExercisePicker}
@@ -513,6 +541,7 @@ const DesktopReportView = ({
   input,
   isSending,
   isSavingRecord,
+  isDeletingGoal,
   isLoadingRecords,
   showExercisePicker,
   records,
@@ -534,6 +563,7 @@ const DesktopReportView = ({
   onCancelRecordEdit,
   onDeleteRecord,
   onAddRecord,
+  onDeleteGoal,
   onSubmit,
 }: ReportViewProps) => (
   // PCは左側をチャットと入力、右側を目標と本日の記録に分割する。
@@ -580,6 +610,7 @@ const DesktopReportView = ({
       input={input}
       isSending={isSending}
       isSavingRecord={isSavingRecord}
+      isDeletingGoal={isDeletingGoal}
       isLoadingRecords={isLoadingRecords}
       isRecordPanelOpen={false}
       showExercisePicker={showExercisePicker}
@@ -604,6 +635,7 @@ const DesktopReportView = ({
       onCancelRecordEdit={onCancelRecordEdit}
       onDeleteRecord={onDeleteRecord}
       onAddRecord={onAddRecord}
+      onDeleteGoal={onDeleteGoal}
       onSubmit={onSubmit}
     />
   </main>
@@ -612,14 +644,17 @@ const DesktopReportView = ({
 const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   // 記録の状態とAPI処理はここに集約し、モバイル・PCで共有する。
   const router = useRouter();
-  const defaultExercise: Exercise = goal ? "ベンチプレス" : "スクワット";
+  const defaultExercise =
+    EXERCISES.find((item) => item === goal?.exercise) ?? "スクワット";
   const [exercise, setExercise] = useState<Exercise>(defaultExercise);
+  const [activeGoal, setActiveGoal] = useState<GoalSummary | null>(goal);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     welcomeMessage(defaultExercise),
   ]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isSavingRecord, setIsSavingRecord] = useState(false);
+  const [isDeletingGoal, setIsDeletingGoal] = useState(false);
   const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const [isRecordPanelOpen, setIsRecordPanelOpen] = useState(false);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
@@ -916,14 +951,45 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     setIsRecordPanelOpen(false);
   };
 
+  // 表示中の目標を論理削除し、画面からもすぐに取り除く。
+  const deleteGoal = async () => {
+    if (!activeGoal || isDeletingGoal) return;
+    if (!window.confirm(`${activeGoal.exercise}の目標を削除しますか？`)) return;
+
+    setIsDeletingGoal(true);
+    try {
+      const response = await fetch(`/api/goals/${activeGoal.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error ?? "目標を削除できませんでした");
+      }
+
+      setActiveGoal(null);
+      setToastMessage("目標を削除しました");
+      router.refresh();
+    } catch (error) {
+      setToastMessage(
+        error instanceof Error ? error.message : "目標を削除できませんでした",
+      );
+    } finally {
+      setIsDeletingGoal(false);
+    }
+  };
+
+  const selectedExerciseGoal =
+    activeGoal?.exercise === exercise ? activeGoal : null;
+
   // refだけは画面ごとに異なるため、それ以外を共通Propsとしてまとめる。
   const viewProps: Omit<ReportViewProps, "chatAreaRef"> = {
-    goal,
+    goal: selectedExerciseGoal,
     exercise,
     messages,
     input,
     isSending,
     isSavingRecord,
+    isDeletingGoal,
     isLoadingRecords,
     isRecordPanelOpen,
     showExercisePicker,
@@ -947,6 +1013,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     onCancelRecordEdit: cancelRecordEdit,
     onDeleteRecord: deleteRecord,
     onAddRecord: addRecord,
+    onDeleteGoal: deleteGoal,
     onSubmit: sendMessage,
   };
 

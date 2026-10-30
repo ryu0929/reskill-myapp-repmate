@@ -148,7 +148,15 @@ const GoalChangeActions = ({
   </div>
 );
 
-const CurrentGoalSummary = ({ goal }: { goal: GoalSummary }) => (
+const CurrentGoalSummary = ({
+  goal,
+  isDeletingGoal,
+  onDeleteGoal,
+}: {
+  goal: GoalSummary;
+  isDeletingGoal: boolean;
+  onDeleteGoal: () => void;
+}) => (
   <section className="w-full shrink-0 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
@@ -158,13 +166,17 @@ const CurrentGoalSummary = ({ goal }: { goal: GoalSummary }) => (
         />
         <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
       </div>
-      <span className="shrink-0 text-[11px] font-bold text-[#10b981]">
-        {goal.statusLabel}
-      </span>
+      <button
+        type="button"
+        onClick={onDeleteGoal}
+        disabled={isDeletingGoal}
+        className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
+      >
+        {isDeletingGoal ? "削除中…" : "削除"}
+      </button>
     </div>
-    <p className="mt-3 text-[13px] leading-[1.4] text-[#9ca3af]">
-      <span className="font-bold text-[#f8fafc]">{goal.name}</span>
-      <span aria-hidden> — </span>
+    <p className="mt-3 text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
+    <p className="mt-2 text-[13px] leading-[1.4] text-[#9ca3af]">
       {goal.description}
     </p>
   </section>
@@ -172,8 +184,10 @@ const CurrentGoalSummary = ({ goal }: { goal: GoalSummary }) => (
 
 const ConfiguredGoalView = ({
   goal,
+  isDeletingGoal,
   onChangeGoal,
   onRestartConsultation,
+  onDeleteGoal,
   desktop = false,
 }: ConfiguredGoalViewProps) => (
   <section
@@ -194,11 +208,18 @@ const ConfiguredGoalView = ({
               className="size-2 shrink-0 rounded-full bg-[#10b981]"
               aria-hidden
             />
-            <h3 className="text-base font-bold text-[#f8fafc]">{goal.name}</h3>
+            <h3 className="text-base font-bold text-[#f8fafc]">
+              {goal.exercise}
+            </h3>
           </div>
-          <span className="shrink-0 rounded-md bg-[rgba(16,185,129,0.13)] px-2 py-1 text-[11px] font-bold text-[#10b981]">
-            {goal.statusLabel}
-          </span>
+          <button
+            type="button"
+            onClick={onDeleteGoal}
+            disabled={isDeletingGoal}
+            className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
+          >
+            {isDeletingGoal ? "削除中…" : "削除"}
+          </button>
         </div>
         <p className="text-sm leading-[1.7] text-[#98a2b3]">
           {goal.description}
@@ -220,6 +241,7 @@ const GoalComposerContent = ({
   selectedProposalId,
   isGeneratingGoals,
   isSavingGoal,
+  isDeletingGoal,
   isChangingGoal,
   isReconsulting,
   canGenerateGoals,
@@ -228,6 +250,7 @@ const GoalComposerContent = ({
   onSaveGoal,
   onChangeGoal,
   onRestartConsultation,
+  onDeleteGoal,
 }: GoalComposerContentProps) => {
   // 現在の目標と新しい候補を同じ領域で切り替えて表示する。
   const hasProposals = proposals.length > 0;
@@ -285,8 +308,18 @@ const GoalComposerContent = ({
           <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
             <div className="flex items-center gap-2">
               <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-              <p className="text-sm font-bold text-[#f8fafc]">{goal.name}</p>
+              <p className="text-sm font-bold text-[#f8fafc]">
+                {goal.exercise}
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={onDeleteGoal}
+              disabled={isDeletingGoal}
+              className="text-left text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
+            >
+              {isDeletingGoal ? "削除中…" : "この目標を削除"}
+            </button>
             <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
               {goal.description}
             </p>
@@ -363,6 +396,7 @@ const MobileConsultView = ({
   selectedProposalId,
   isGeneratingGoals,
   isSavingGoal,
+  isDeletingGoal,
   isChangingGoal,
   isReconsulting,
   isGoalComposerOpen,
@@ -377,6 +411,7 @@ const MobileConsultView = ({
   onSaveGoal,
   onChangeGoal,
   onRestartConsultation,
+  onDeleteGoal,
   onCloseGoalComposer,
 }: ConsultViewProps) => (
   // SPは1画面内を縦に分割し、目標候補は下から重なるシートとして表示する。
@@ -389,13 +424,21 @@ const MobileConsultView = ({
     {goal && !isReconsulting && proposals.length === 0 && !isGeneratingGoals ? (
       <ConfiguredGoalView
         goal={goal}
+        isDeletingGoal={isDeletingGoal}
         onChangeGoal={onChangeGoal}
         onRestartConsultation={onRestartConsultation}
+        onDeleteGoal={onDeleteGoal}
       />
     ) : (
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 pb-3 pt-1">
         {/* チャット領域へ残りの高さを渡すため、外側ではスクロールを増やさない。 */}
-        {goal && isReconsulting && <CurrentGoalSummary goal={goal} />}
+        {goal && isReconsulting && (
+          <CurrentGoalSummary
+            goal={goal}
+            isDeletingGoal={isDeletingGoal}
+            onDeleteGoal={onDeleteGoal}
+          />
+        )}
         <ExerciseSelector
           exercise={exercise}
           isOpen={showExercisePicker}
@@ -464,6 +507,7 @@ const MobileConsultView = ({
         selectedProposalId={selectedProposalId}
         isGeneratingGoals={isGeneratingGoals}
         isSavingGoal={isSavingGoal}
+        isDeletingGoal={isDeletingGoal}
         isChangingGoal={isChangingGoal}
         isReconsulting={isReconsulting}
         canGenerateGoals={canGenerateGoals}
@@ -472,6 +516,7 @@ const MobileConsultView = ({
         onSaveGoal={onSaveGoal}
         onChangeGoal={onChangeGoal}
         onRestartConsultation={onRestartConsultation}
+        onDeleteGoal={onDeleteGoal}
       />
     </aside>
 
@@ -491,6 +536,7 @@ const DesktopConsultView = ({
   selectedProposalId,
   isGeneratingGoals,
   isSavingGoal,
+  isDeletingGoal,
   isChangingGoal,
   isReconsulting,
   isGoalComposerOpen,
@@ -504,6 +550,7 @@ const DesktopConsultView = ({
   onSaveGoal,
   onChangeGoal,
   onRestartConsultation,
+  onDeleteGoal,
   onCloseGoalComposer,
 }: ConsultViewProps) => {
   // PCは左に会話、右に目標パネルを並べ、設定済みの場合は概要画面へ切り替える。
@@ -518,8 +565,10 @@ const DesktopConsultView = ({
       <main className="flex min-h-0 flex-1">
         <ConfiguredGoalView
           goal={goal}
+          isDeletingGoal={isDeletingGoal}
           onChangeGoal={onChangeGoal}
           onRestartConsultation={onRestartConsultation}
+          onDeleteGoal={onDeleteGoal}
           desktop
         />
       </main>
@@ -530,7 +579,13 @@ const DesktopConsultView = ({
     <main className="flex min-h-0 flex-1">
       <section className="flex min-w-0 flex-1 flex-col justify-between px-10 py-6">
         <div className="flex min-h-0 flex-1 flex-col gap-5">
-          {goal && isReconsulting && <CurrentGoalSummary goal={goal} />}
+          {goal && isReconsulting && (
+            <CurrentGoalSummary
+              goal={goal}
+              isDeletingGoal={isDeletingGoal}
+              onDeleteGoal={onDeleteGoal}
+            />
+          )}
           <ExerciseSelector
             exercise={exercise}
             isOpen={showExercisePicker}
@@ -565,6 +620,7 @@ const DesktopConsultView = ({
         selectedProposalId={selectedProposalId}
         isGeneratingGoals={isGeneratingGoals}
         isSavingGoal={isSavingGoal}
+        isDeletingGoal={isDeletingGoal}
         isChangingGoal={isChangingGoal}
         isReconsulting={isReconsulting}
         isGoalComposerOpen={isGoalComposerOpen}
@@ -578,6 +634,7 @@ const DesktopConsultView = ({
         onSaveGoal={onSaveGoal}
         onChangeGoal={onChangeGoal}
         onRestartConsultation={onRestartConsultation}
+        onDeleteGoal={onDeleteGoal}
         onCloseGoalComposer={onCloseGoalComposer}
       />
     </main>
@@ -590,9 +647,11 @@ export const ConsultScreen = ({
 }: ConsultScreenProps) => {
   // 会話と目標設定の状態はここで管理し、モバイル・PCには同じ値を渡す。
   const router = useRouter();
-  const [exercise, setExercise] = useState<Exercise>("ベンチプレス");
+  const defaultExercise =
+    EXERCISES.find((item) => item === goal?.exercise) ?? "ベンチプレス";
+  const [exercise, setExercise] = useState<Exercise>(defaultExercise);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    welcomeMessage("ベンチプレス"),
+    welcomeMessage(defaultExercise),
   ]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -604,6 +663,7 @@ export const ConsultScreen = ({
   );
   const [isGeneratingGoals, setIsGeneratingGoals] = useState(false);
   const [isSavingGoal, setIsSavingGoal] = useState(false);
+  const [isDeletingGoal, setIsDeletingGoal] = useState(false);
   const [isChangingGoal, setIsChangingGoal] = useState(false);
   const [isReconsulting, setIsReconsulting] = useState(false);
   const [isGoalComposerOpen, setIsGoalComposerOpen] = useState(false);
@@ -841,6 +901,7 @@ export const ConsultScreen = ({
 
       setActiveGoal({
         id: data.goal.id,
+        exercise,
         name: data.goal.title,
         statusLabel: data.goal.statusLabel,
         description: data.goal.description,
@@ -861,6 +922,38 @@ export const ConsultScreen = ({
     }
   };
 
+  // 設定済み目標を論理削除し、相談画面を未設定状態へ戻す。
+  const deleteGoal = async () => {
+    if (!activeGoal || isDeletingGoal) return;
+    if (!window.confirm(`${activeGoal.exercise}の目標を削除しますか？`)) return;
+
+    setIsDeletingGoal(true);
+    try {
+      const response = await fetch(`/api/goals/${activeGoal.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error ?? "目標を削除できませんでした");
+      }
+
+      setActiveGoal(null);
+      setProposals([]);
+      setSelectedProposalId(null);
+      setIsChangingGoal(false);
+      setIsReconsulting(false);
+      setIsGoalComposerOpen(false);
+      setToastMessage("目標を削除しました");
+      router.refresh();
+    } catch (error) {
+      setToastMessage(
+        error instanceof Error ? error.message : "目標を削除できませんでした",
+      );
+    } finally {
+      setIsDeletingGoal(false);
+    }
+  };
+
   const canGenerateGoals = completedTurns >= 1 && !isSending;
 
   // スクロール対象のrefだけはSP・PCで分け、それ以外の状態と操作を共通化する。
@@ -875,6 +968,7 @@ export const ConsultScreen = ({
     selectedProposalId,
     isGeneratingGoals,
     isSavingGoal,
+    isDeletingGoal,
     isChangingGoal,
     isReconsulting,
     isGoalComposerOpen,
@@ -888,6 +982,7 @@ export const ConsultScreen = ({
     onSaveGoal: saveGoal,
     onChangeGoal: changeGoal,
     onRestartConsultation: restartConsultation,
+    onDeleteGoal: deleteGoal,
     onCloseGoalComposer: () => setIsGoalComposerOpen(false),
   };
 
