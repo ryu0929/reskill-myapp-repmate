@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
+import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
@@ -151,10 +152,16 @@ const GoalChangeActions = ({
 const CurrentGoalSummary = ({
   goal,
   isDeletingGoal,
+  isGoalDeleteConfirming,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
 }: {
   goal: GoalSummary;
   isDeletingGoal: boolean;
+  isGoalDeleteConfirming: boolean;
+  onRequestGoalDelete: () => void;
+  onCancelGoalDelete: () => void;
   onDeleteGoal: () => void;
 }) => (
   <section className="w-full shrink-0 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
@@ -166,14 +173,13 @@ const CurrentGoalSummary = ({
         />
         <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
       </div>
-      <button
-        type="button"
-        onClick={onDeleteGoal}
-        disabled={isDeletingGoal}
-        className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
-      >
-        {isDeletingGoal ? "削除中…" : "削除"}
-      </button>
+      <GoalDeleteAction
+        isConfirming={isGoalDeleteConfirming}
+        isDeleting={isDeletingGoal}
+        onRequest={onRequestGoalDelete}
+        onCancel={onCancelGoalDelete}
+        onConfirm={onDeleteGoal}
+      />
     </div>
     <p className="mt-3 text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
     <p className="mt-2 text-[13px] leading-[1.4] text-[#9ca3af]">
@@ -185,8 +191,11 @@ const CurrentGoalSummary = ({
 const ConfiguredGoalView = ({
   goal,
   isDeletingGoal,
+  isGoalDeleteConfirming,
   onChangeGoal,
   onRestartConsultation,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
   desktop = false,
 }: ConfiguredGoalViewProps) => (
@@ -212,14 +221,13 @@ const ConfiguredGoalView = ({
               {goal.exercise}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={onDeleteGoal}
-            disabled={isDeletingGoal}
-            className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
-          >
-            {isDeletingGoal ? "削除中…" : "削除"}
-          </button>
+          <GoalDeleteAction
+            isConfirming={isGoalDeleteConfirming}
+            isDeleting={isDeletingGoal}
+            onRequest={onRequestGoalDelete}
+            onCancel={onCancelGoalDelete}
+            onConfirm={onDeleteGoal}
+          />
         </div>
         <p className="text-sm leading-[1.7] text-[#98a2b3]">
           {goal.description}
@@ -242,6 +250,7 @@ const GoalComposerContent = ({
   isGeneratingGoals,
   isSavingGoal,
   isDeletingGoal,
+  isGoalDeleteConfirming,
   isChangingGoal,
   isReconsulting,
   canGenerateGoals,
@@ -250,6 +259,8 @@ const GoalComposerContent = ({
   onSaveGoal,
   onChangeGoal,
   onRestartConsultation,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
 }: GoalComposerContentProps) => {
   // 現在の目標と新しい候補を同じ領域で切り替えて表示する。
@@ -312,14 +323,13 @@ const GoalComposerContent = ({
                 {goal.exercise}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={onDeleteGoal}
-              disabled={isDeletingGoal}
-              className="text-left text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
-            >
-              {isDeletingGoal ? "削除中…" : "この目標を削除"}
-            </button>
+            <GoalDeleteAction
+              isConfirming={isGoalDeleteConfirming}
+              isDeleting={isDeletingGoal}
+              onRequest={onRequestGoalDelete}
+              onCancel={onCancelGoalDelete}
+              onConfirm={onDeleteGoal}
+            />
             <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
               {goal.description}
             </p>
@@ -397,6 +407,7 @@ const MobileConsultView = ({
   isGeneratingGoals,
   isSavingGoal,
   isDeletingGoal,
+  isGoalDeleteConfirming,
   isChangingGoal,
   isReconsulting,
   isGoalComposerOpen,
@@ -411,6 +422,8 @@ const MobileConsultView = ({
   onSaveGoal,
   onChangeGoal,
   onRestartConsultation,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
   onCloseGoalComposer,
 }: ConsultViewProps) => (
@@ -425,8 +438,11 @@ const MobileConsultView = ({
       <ConfiguredGoalView
         goal={goal}
         isDeletingGoal={isDeletingGoal}
+        isGoalDeleteConfirming={isGoalDeleteConfirming}
         onChangeGoal={onChangeGoal}
         onRestartConsultation={onRestartConsultation}
+        onRequestGoalDelete={onRequestGoalDelete}
+        onCancelGoalDelete={onCancelGoalDelete}
         onDeleteGoal={onDeleteGoal}
       />
     ) : (
@@ -436,6 +452,9 @@ const MobileConsultView = ({
           <CurrentGoalSummary
             goal={goal}
             isDeletingGoal={isDeletingGoal}
+            isGoalDeleteConfirming={isGoalDeleteConfirming}
+            onRequestGoalDelete={onRequestGoalDelete}
+            onCancelGoalDelete={onCancelGoalDelete}
             onDeleteGoal={onDeleteGoal}
           />
         )}
@@ -508,6 +527,7 @@ const MobileConsultView = ({
         isGeneratingGoals={isGeneratingGoals}
         isSavingGoal={isSavingGoal}
         isDeletingGoal={isDeletingGoal}
+        isGoalDeleteConfirming={isGoalDeleteConfirming}
         isChangingGoal={isChangingGoal}
         isReconsulting={isReconsulting}
         canGenerateGoals={canGenerateGoals}
@@ -516,6 +536,8 @@ const MobileConsultView = ({
         onSaveGoal={onSaveGoal}
         onChangeGoal={onChangeGoal}
         onRestartConsultation={onRestartConsultation}
+        onRequestGoalDelete={onRequestGoalDelete}
+        onCancelGoalDelete={onCancelGoalDelete}
         onDeleteGoal={onDeleteGoal}
       />
     </aside>
@@ -537,6 +559,7 @@ const DesktopConsultView = ({
   isGeneratingGoals,
   isSavingGoal,
   isDeletingGoal,
+  isGoalDeleteConfirming,
   isChangingGoal,
   isReconsulting,
   isGoalComposerOpen,
@@ -550,6 +573,8 @@ const DesktopConsultView = ({
   onSaveGoal,
   onChangeGoal,
   onRestartConsultation,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
   onCloseGoalComposer,
 }: ConsultViewProps) => {
@@ -566,8 +591,11 @@ const DesktopConsultView = ({
         <ConfiguredGoalView
           goal={goal}
           isDeletingGoal={isDeletingGoal}
+          isGoalDeleteConfirming={isGoalDeleteConfirming}
           onChangeGoal={onChangeGoal}
           onRestartConsultation={onRestartConsultation}
+          onRequestGoalDelete={onRequestGoalDelete}
+          onCancelGoalDelete={onCancelGoalDelete}
           onDeleteGoal={onDeleteGoal}
           desktop
         />
@@ -583,6 +611,9 @@ const DesktopConsultView = ({
             <CurrentGoalSummary
               goal={goal}
               isDeletingGoal={isDeletingGoal}
+              isGoalDeleteConfirming={isGoalDeleteConfirming}
+              onRequestGoalDelete={onRequestGoalDelete}
+              onCancelGoalDelete={onCancelGoalDelete}
               onDeleteGoal={onDeleteGoal}
             />
           )}
@@ -621,6 +652,7 @@ const DesktopConsultView = ({
         isGeneratingGoals={isGeneratingGoals}
         isSavingGoal={isSavingGoal}
         isDeletingGoal={isDeletingGoal}
+        isGoalDeleteConfirming={isGoalDeleteConfirming}
         isChangingGoal={isChangingGoal}
         isReconsulting={isReconsulting}
         isGoalComposerOpen={isGoalComposerOpen}
@@ -634,6 +666,8 @@ const DesktopConsultView = ({
         onSaveGoal={onSaveGoal}
         onChangeGoal={onChangeGoal}
         onRestartConsultation={onRestartConsultation}
+        onRequestGoalDelete={onRequestGoalDelete}
+        onCancelGoalDelete={onCancelGoalDelete}
         onDeleteGoal={onDeleteGoal}
         onCloseGoalComposer={onCloseGoalComposer}
       />
@@ -664,6 +698,7 @@ export const ConsultScreen = ({
   const [isGeneratingGoals, setIsGeneratingGoals] = useState(false);
   const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [isDeletingGoal, setIsDeletingGoal] = useState(false);
+  const [isGoalDeleteConfirming, setIsGoalDeleteConfirming] = useState(false);
   const [isChangingGoal, setIsChangingGoal] = useState(false);
   const [isReconsulting, setIsReconsulting] = useState(false);
   const [isGoalComposerOpen, setIsGoalComposerOpen] = useState(false);
@@ -758,6 +793,7 @@ export const ConsultScreen = ({
     setSelectedProposalId(null);
     setIsChangingGoal(false);
     setIsReconsulting(Boolean(activeGoal));
+    setIsGoalDeleteConfirming(false);
     setIsGoalComposerOpen(false);
     setCompletedTurns(0);
   };
@@ -911,6 +947,7 @@ export const ConsultScreen = ({
       setIsChangingGoal(false);
       setIsReconsulting(false);
       setIsGoalComposerOpen(false);
+      setIsGoalDeleteConfirming(false);
       setToastMessage(successMessage);
       router.refresh();
     } catch (error) {
@@ -925,7 +962,6 @@ export const ConsultScreen = ({
   // 設定済み目標を論理削除し、相談画面を未設定状態へ戻す。
   const deleteGoal = async () => {
     if (!activeGoal || isDeletingGoal) return;
-    if (!window.confirm(`${activeGoal.exercise}の目標を削除しますか？`)) return;
 
     setIsDeletingGoal(true);
     try {
@@ -943,6 +979,7 @@ export const ConsultScreen = ({
       setIsChangingGoal(false);
       setIsReconsulting(false);
       setIsGoalComposerOpen(false);
+      setIsGoalDeleteConfirming(false);
       setToastMessage("目標を削除しました");
       router.refresh();
     } catch (error) {
@@ -969,6 +1006,7 @@ export const ConsultScreen = ({
     isGeneratingGoals,
     isSavingGoal,
     isDeletingGoal,
+    isGoalDeleteConfirming,
     isChangingGoal,
     isReconsulting,
     isGoalComposerOpen,
@@ -982,6 +1020,8 @@ export const ConsultScreen = ({
     onSaveGoal: saveGoal,
     onChangeGoal: changeGoal,
     onRestartConsultation: restartConsultation,
+    onRequestGoalDelete: () => setIsGoalDeleteConfirming(true),
+    onCancelGoalDelete: () => setIsGoalDeleteConfirming(false),
     onDeleteGoal: deleteGoal,
     onCloseGoalComposer: () => setIsGoalComposerOpen(false),
   };

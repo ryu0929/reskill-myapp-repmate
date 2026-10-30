@@ -52,8 +52,11 @@ export type GoalChangeActionsProps = {
 export type ConfiguredGoalViewProps = {
   goal: GoalSummary;
   isDeletingGoal: boolean;
+  isGoalDeleteConfirming: boolean;
   onChangeGoal: () => void;
   onRestartConsultation: () => void;
+  onRequestGoalDelete: () => void;
+  onCancelGoalDelete: () => void;
   onDeleteGoal: () => void;
   desktop?: boolean;
 };
@@ -71,6 +74,7 @@ export type ConsultViewProps = {
   isGeneratingGoals: boolean;
   isSavingGoal: boolean;
   isDeletingGoal: boolean;
+  isGoalDeleteConfirming: boolean;
   isChangingGoal: boolean;
   isReconsulting: boolean;
   isGoalComposerOpen: boolean;
@@ -84,6 +88,8 @@ export type ConsultViewProps = {
   onSaveGoal: () => void;
   onChangeGoal: () => void;
   onRestartConsultation: () => void;
+  onRequestGoalDelete: () => void;
+  onCancelGoalDelete: () => void;
   onDeleteGoal: () => void;
   onCloseGoalComposer: () => void;
 };
@@ -96,6 +102,7 @@ export type GoalComposerContentProps = Pick<
   | "isGeneratingGoals"
   | "isSavingGoal"
   | "isDeletingGoal"
+  | "isGoalDeleteConfirming"
   | "isChangingGoal"
   | "isReconsulting"
   | "canGenerateGoals"
@@ -104,5 +111,7 @@ export type GoalComposerContentProps = Pick<
   | "onSaveGoal"
   | "onChangeGoal"
   | "onRestartConsultation"
+  | "onRequestGoalDelete"
+  | "onCancelGoalDelete"
   | "onDeleteGoal"
 >;

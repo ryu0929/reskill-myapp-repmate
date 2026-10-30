@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
+import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
@@ -54,10 +55,16 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
 const GoalSection = ({
   goal,
   isDeletingGoal,
+  isGoalDeleteConfirming,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
 }: {
   goal?: GoalSummary | null;
   isDeletingGoal: boolean;
+  isGoalDeleteConfirming: boolean;
+  onRequestGoalDelete: () => void;
+  onCancelGoalDelete: () => void;
   onDeleteGoal: () => void;
 }) => {
   if (!goal) {
@@ -75,14 +82,13 @@ const GoalSection = ({
           <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
           <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
         </div>
-        <button
-          type="button"
-          onClick={onDeleteGoal}
-          disabled={isDeletingGoal}
-          className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
-        >
-          {isDeletingGoal ? "削除中…" : "削除"}
-        </button>
+        <GoalDeleteAction
+          isConfirming={isGoalDeleteConfirming}
+          isDeleting={isDeletingGoal}
+          onRequest={onRequestGoalDelete}
+          onCancel={onCancelGoalDelete}
+          onConfirm={onDeleteGoal}
+        />
       </div>
       <p className="mt-3 text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
       <p className="mt-2 text-[13px] leading-[1.4] text-[#9ca3af]">
@@ -323,6 +329,7 @@ const ReportSidePanel = ({
   goal = null,
   records,
   isDeletingGoal,
+  isGoalDeleteConfirming,
   isLoadingRecords,
   editingRecordId,
   editWeight,
@@ -334,6 +341,8 @@ const ReportSidePanel = ({
   onCancelRecordEdit,
   onDeleteRecord,
   onAddRecord,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
 }: ReportViewProps) => (
   <aside className="flex h-full w-[380px] shrink-0 flex-col gap-5 border-l border-[#273142] bg-[#111620] p-6">
@@ -353,14 +362,13 @@ const ReportSidePanel = ({
             <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
             <p className="text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
           </div>
-          <button
-            type="button"
-            onClick={onDeleteGoal}
-            disabled={isDeletingGoal}
-            className="shrink-0 text-[11px] font-bold text-[#ef6b73] transition-colors hover:text-[#ff8a91] disabled:opacity-40"
-          >
-            {isDeletingGoal ? "削除中…" : "削除"}
-          </button>
+          <GoalDeleteAction
+            isConfirming={isGoalDeleteConfirming}
+            isDeleting={isDeletingGoal}
+            onRequest={onRequestGoalDelete}
+            onCancel={onCancelGoalDelete}
+            onConfirm={onDeleteGoal}
+          />
         </div>
         <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
           {goal.detail}
@@ -405,6 +413,7 @@ const MobileReportView = ({
   isSending,
   isSavingRecord,
   isDeletingGoal,
+  isGoalDeleteConfirming,
   isLoadingRecords,
   isRecordPanelOpen,
   showExercisePicker,
@@ -429,6 +438,8 @@ const MobileReportView = ({
   onCancelRecordEdit,
   onDeleteRecord,
   onAddRecord,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
   onSubmit,
 }: ReportViewProps) => (
@@ -444,6 +455,9 @@ const MobileReportView = ({
       <GoalSection
         goal={goal}
         isDeletingGoal={isDeletingGoal}
+        isGoalDeleteConfirming={isGoalDeleteConfirming}
+        onRequestGoalDelete={onRequestGoalDelete}
+        onCancelGoalDelete={onCancelGoalDelete}
         onDeleteGoal={onDeleteGoal}
       />
       <ExerciseSelector
@@ -542,6 +556,7 @@ const DesktopReportView = ({
   isSending,
   isSavingRecord,
   isDeletingGoal,
+  isGoalDeleteConfirming,
   isLoadingRecords,
   showExercisePicker,
   records,
@@ -563,6 +578,8 @@ const DesktopReportView = ({
   onCancelRecordEdit,
   onDeleteRecord,
   onAddRecord,
+  onRequestGoalDelete,
+  onCancelGoalDelete,
   onDeleteGoal,
   onSubmit,
 }: ReportViewProps) => (
@@ -611,6 +628,7 @@ const DesktopReportView = ({
       isSending={isSending}
       isSavingRecord={isSavingRecord}
       isDeletingGoal={isDeletingGoal}
+      isGoalDeleteConfirming={isGoalDeleteConfirming}
       isLoadingRecords={isLoadingRecords}
       isRecordPanelOpen={false}
       showExercisePicker={showExercisePicker}
@@ -635,6 +653,8 @@ const DesktopReportView = ({
       onCancelRecordEdit={onCancelRecordEdit}
       onDeleteRecord={onDeleteRecord}
       onAddRecord={onAddRecord}
+      onRequestGoalDelete={onRequestGoalDelete}
+      onCancelGoalDelete={onCancelGoalDelete}
       onDeleteGoal={onDeleteGoal}
       onSubmit={onSubmit}
     />
@@ -655,6 +675,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   const [isSending, setIsSending] = useState(false);
   const [isSavingRecord, setIsSavingRecord] = useState(false);
   const [isDeletingGoal, setIsDeletingGoal] = useState(false);
+  const [isGoalDeleteConfirming, setIsGoalDeleteConfirming] = useState(false);
   const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const [isRecordPanelOpen, setIsRecordPanelOpen] = useState(false);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
@@ -818,6 +839,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     setInput("");
     setRecordDraft(null);
     setEditingRecordId(null);
+    setIsGoalDeleteConfirming(false);
   };
 
   const handleRecordDraftChange = (
@@ -954,7 +976,6 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   // 表示中の目標を論理削除し、画面からもすぐに取り除く。
   const deleteGoal = async () => {
     if (!activeGoal || isDeletingGoal) return;
-    if (!window.confirm(`${activeGoal.exercise}の目標を削除しますか？`)) return;
 
     setIsDeletingGoal(true);
     try {
@@ -967,6 +988,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
       }
 
       setActiveGoal(null);
+      setIsGoalDeleteConfirming(false);
       setToastMessage("目標を削除しました");
       router.refresh();
     } catch (error) {
@@ -990,6 +1012,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     isSending,
     isSavingRecord,
     isDeletingGoal,
+    isGoalDeleteConfirming,
     isLoadingRecords,
     isRecordPanelOpen,
     showExercisePicker,
@@ -1013,6 +1036,8 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     onCancelRecordEdit: cancelRecordEdit,
     onDeleteRecord: deleteRecord,
     onAddRecord: addRecord,
+    onRequestGoalDelete: () => setIsGoalDeleteConfirming(true),
+    onCancelGoalDelete: () => setIsGoalDeleteConfirming(false),
     onDeleteGoal: deleteGoal,
     onSubmit: sendMessage,
   };

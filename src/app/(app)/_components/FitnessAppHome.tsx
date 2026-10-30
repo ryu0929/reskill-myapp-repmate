@@ -40,14 +40,14 @@ const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
         <p className="text-[13px] leading-[1.4] text-[#9ca3af]">
           今日の目標はまだ設定されていません。ワークアウトの計画を作成しましょう。
         </p>
-        <button
-          type="button"
+        <Link
+          href="/consult"
           className="flex w-fit items-center gap-1 text-[13px] font-bold text-[#1856ed] transition-opacity hover:opacity-90"
         >
           目標を設定する
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt="" className="size-3" src={assets.chevronRightGoal} />
-        </button>
+        </Link>
       </div>
     )}
   </section>
@@ -249,12 +249,12 @@ const DesktopGoalPanel = ({ goal }: { goal?: GoalSummary | null }) => (
         <p className="text-sm leading-[1.5] text-[#98a2b3]">
           今日の目標はまだ設定されていません。ワークアウトの計画を作成しましょう。
         </p>
-        <button
-          type="button"
+        <Link
+          href="/consult"
           className="text-sm font-bold text-[#2463eb] transition-opacity hover:opacity-80"
         >
           目標を設定する &gt;
-        </button>
+        </Link>
       </div>
     )}
   </section>

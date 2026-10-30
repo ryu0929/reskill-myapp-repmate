@@ -53,6 +53,7 @@ export type ReportViewProps = {
   isSending: boolean;
   isSavingRecord: boolean;
   isDeletingGoal: boolean;
+  isGoalDeleteConfirming: boolean;
   isLoadingRecords: boolean;
   isRecordPanelOpen: boolean;
   showExercisePicker: boolean;
@@ -80,6 +81,8 @@ export type ReportViewProps = {
   onCancelRecordEdit: () => void;
   onDeleteRecord: (recordId: string) => void;
   onAddRecord: () => void;
+  onRequestGoalDelete: () => void;
+  onCancelGoalDelete: () => void;
   onDeleteGoal: () => void;
   onSubmit: (event?: FormEvent) => void;
 };
