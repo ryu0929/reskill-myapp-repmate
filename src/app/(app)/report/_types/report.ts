@@ -76,6 +76,7 @@ export type ReportViewProps = {
   onSaveRecordEdit: () => void;
   onCancelRecordEdit: () => void;
   onDeleteRecord: (recordId: string) => void;
+  onAddRecord: () => void;
   onSubmit: (event?: FormEvent) => void;
 };
 

@@ -292,6 +292,19 @@ const TrainingRecordList = ({
   );
 };
 
+const AddRecordButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-dashed border-[#384255] bg-[#141822] px-4 py-2.5 text-sm font-bold text-[#5b8cff] transition-colors hover:border-[#5b8cff] hover:bg-[#17213a]"
+  >
+    <span className="text-lg leading-none" aria-hidden>
+      ＋
+    </span>
+    セットを追加
+  </button>
+);
+
 const ReportSidePanel = ({
   goal = null,
   records,
@@ -305,6 +318,7 @@ const ReportSidePanel = ({
   onSaveRecordEdit,
   onCancelRecordEdit,
   onDeleteRecord,
+  onAddRecord,
 }: ReportViewProps) => (
   <aside className="flex h-full w-[380px] shrink-0 flex-col gap-5 border-l border-[#273142] bg-[#111620] p-6">
     <div className="flex items-center justify-between gap-3">
@@ -356,6 +370,7 @@ const ReportSidePanel = ({
         onCancelEdit={onCancelRecordEdit}
         onDelete={onDeleteRecord}
       />
+      {records.length > 0 && <AddRecordButton onClick={onAddRecord} />}
     </div>
   </aside>
 );
@@ -390,6 +405,7 @@ const MobileReportView = ({
   onSaveRecordEdit,
   onCancelRecordEdit,
   onDeleteRecord,
+  onAddRecord,
   onSubmit,
 }: ReportViewProps) => (
   // SPはヘッダー・本文・ボトムナビを縦に並べ、記録一覧を下部シートで開く。
@@ -483,6 +499,7 @@ const MobileReportView = ({
         onCancelEdit={onCancelRecordEdit}
         onDelete={onDeleteRecord}
       />
+      {records.length > 0 && <AddRecordButton onClick={onAddRecord} />}
     </aside>
 
     <AppTabBar active="report" />
@@ -516,6 +533,7 @@ const DesktopReportView = ({
   onSaveRecordEdit,
   onCancelRecordEdit,
   onDeleteRecord,
+  onAddRecord,
   onSubmit,
 }: ReportViewProps) => (
   // PCは左側をチャットと入力、右側を目標と本日の記録に分割する。
@@ -585,6 +603,7 @@ const DesktopReportView = ({
       onSaveRecordEdit={onSaveRecordEdit}
       onCancelRecordEdit={onCancelRecordEdit}
       onDeleteRecord={onDeleteRecord}
+      onAddRecord={onAddRecord}
       onSubmit={onSubmit}
     />
   </main>
@@ -883,6 +902,20 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     }
   };
 
+  // 直前セットの値を引き継ぎ、1セット分の確認カードを開く。
+  const addRecord = () => {
+    const latestRecord = records[records.length - 1];
+    if (!latestRecord) return;
+
+    setEditingRecordId(null);
+    setRecordDraft({
+      weight: String(latestRecord.weight),
+      reps: String(latestRecord.reps),
+      sets: "1",
+    });
+    setIsRecordPanelOpen(false);
+  };
+
   // refだけは画面ごとに異なるため、それ以外を共通Propsとしてまとめる。
   const viewProps: Omit<ReportViewProps, "chatAreaRef"> = {
     goal,
@@ -913,6 +946,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     onSaveRecordEdit: saveRecordEdit,
     onCancelRecordEdit: cancelRecordEdit,
     onDeleteRecord: deleteRecord,
+    onAddRecord: addRecord,
     onSubmit: sendMessage,
   };
 
