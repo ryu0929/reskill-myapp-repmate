@@ -19,7 +19,7 @@ import type {
 
 const assets = {
   avatar: "/assets/avatarIcon.svg",
-  aiAvatar: "/assets/consult/ai-avatar.png",
+  aiAvatar: "/assets/trainer-avatar.png",
   logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
   trendingUp: "/assets/trending-up.svg",
