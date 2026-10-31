@@ -1,7 +1,8 @@
-# RepMateで学ぶ TypeScript・CRUD 必修ガイド
+# RepMateで学ぶ TypeScript・Next.js 実装ガイド
 
-対象: TypeScript / React / Next.js App Router / Prisma / Supabase Auth を学習中の方向け  
-題材: `/report` のトレーニング記録機能
+- 対象: TypeScript / React / Next.js App Router / Prisma / Supabase Auth / Gemini APIを学習中の方向け
+- 題材: RepMateの認証、AI相談、目標設定、トレーニング記録、進捗表示
+- 更新日: 2026年10月31日
 
 ---
 
@@ -11,13 +12,16 @@
 
 > 画面から `fetch` でAPIを呼び、APIで認証と入力検証を行い、PrismaでDBを操作し、結果をJSONで画面へ返す。
 
-最低限、次の5点は必ず身につけたい内容です。
+最低限、次の8点は必ず身につけたい内容です。
 
 1. CRUDとHTTPメソッドの対応
 2. `async / await`を使った非同期処理
 3. TypeScriptの型と`unknown`の意味
 4. Zodによる実行時の入力検証
 5. PrismaによるDB操作と、ログインユーザー本人のデータだけを扱う方法
+6. React Hook FormとZodを組み合わせたフォーム管理
+7. Gemini APIへ会話を送り、返答を再検証する方法
+8. Server ComponentとClient Componentの役割分担
 
 この5点を理解すると、Todoアプリ、日報、投稿、予約、プロフィール編集などにも応用できます。
 
@@ -32,7 +36,7 @@ CRUDはデータ操作の4種類をまとめた呼び方です。
 | Create | 新規作成 | `POST` | トレーニング記録を保存 | `createMany()` |
 | Read | 取得 | `GET` | 本日の記録を一覧表示 | `findMany()` |
 | Update | 更新 | `PATCH` | 重量・回数を編集 | `update()` |
-| Delete | 削除 | `DELETE` | 記録を削除 | `deleteMany()` |
+| Delete | 削除 | `DELETE` | 記録を削除してセット順を振り直す | `delete()`・`update()` |
 
 APIのURLは次の2種類です。
 
@@ -46,6 +50,22 @@ APIのURLは次の2種類です。
 ```text
 /api/training-records/abc
 ```
+
+### RepMate全体のAPI早見表
+
+| パス | HTTP | 役割 |
+|---|---|---|
+| `/api/chat` | `POST` | Geminiまたはモックから会話の返答を取得 |
+| `/api/goals/proposals` | `POST` | 会話から目標候補を生成 |
+| `/api/goals` | `POST` | 相談・候補・選択目標を保存 |
+| `/api/goals/[id]` | `GET` | 保存済みの目標候補を取得 |
+| `/api/goals/[id]` | `PATCH` | 選択中の目標候補を変更 |
+| `/api/goals/[id]` | `DELETE` | 目標を`cancelled`へ変更 |
+| `/api/training-records` | `GET` | 本日の記録を取得 |
+| `/api/training-records` | `POST` | セット記録を作成 |
+| `/api/training-records/[id]` | `PATCH` | 1セットの重量・回数・メモを更新 |
+| `/api/training-records/[id]` | `DELETE` | 1セットを削除して順番を振り直す |
+| `/api/profile` | `PATCH` | 名前・性別・パスワードを更新 |
 
 ---
 
@@ -142,7 +162,7 @@ const data = await response.json();
 
 ### 最重要: 覚えておくCRUDテンプレート早見表
 
-この2つは、まず何度も書いて流れを覚えたいテンプレートです。後半の「16. 最低限、自力で書けるようにしたいテンプレート」にも、同じ内容と説明を残しています。
+この2つは、まず何度も書いて流れを覚えたいテンプレートです。後半の「21. 最低限、自力で書けるようにしたいテンプレート」にも、同じ内容と説明を残しています。
 
 #### 画面・クライアント側
 
@@ -338,7 +358,7 @@ await transaction.trainingRecord.createMany({
     exerciseId: exerciseRecord.id,
     weight,
     reps,
-    setOrder: existingSetCount + index + 1,
+    setOrder: nextSetOrder + index,
     memo: memo || null,
     recordedAt: new Date(),
   })),
@@ -346,6 +366,24 @@ await transaction.trainingRecord.createMany({
 ```
 
 `Array.from({ length: sets })`でセット数分のデータを作っています。3セットなら3件の`TrainingRecord`が保存されます。
+
+`nextSetOrder`は、その日の同じ種目について最大の`setOrder`を取得して計算します。
+
+```ts
+const latestRecord = await transaction.trainingRecord.findFirst({
+  where: {
+    userId: user.id,
+    exerciseId: exerciseRecord.id,
+    recordedAt: { gte: start, lt: end },
+  },
+  orderBy: { setOrder: "desc" },
+  select: { setOrder: true },
+});
+
+const nextSetOrder = (latestRecord?.setOrder ?? 0) + 1;
+```
+
+件数ではなく最大番号を見ることで、途中のセットを削除した場合でも番号の重複を防ぎます。
 
 ### 5-5. transactionが必要な理由
 
@@ -363,6 +401,22 @@ const records = await prisma.$transaction(async (transaction) => {
 ```
 
 途中で1つ失敗した場合、すべてを取り消して不完全なデータが残るのを防ぎます。これをトランザクションと呼びます。
+
+### 5-6. 保存済み記録へ1セット追加する
+
+本日の記録が1件以上ある場合、一覧下部に「セットを追加」を表示します。
+
+```ts
+const latestRecord = records[records.length - 1];
+
+setRecordDraft({
+  weight: String(latestRecord.weight),
+  reps: String(latestRecord.reps),
+  sets: "1",
+});
+```
+
+直前セットの重量と回数を引き継ぎ、確認カードで修正してから既存の`POST /api/training-records`へ送ります。追加専用APIを増やさず、Create処理を再利用している点がポイントです。
 
 ---
 
@@ -489,30 +543,56 @@ const response = await fetch(`/api/training-records/${recordId}`, {
 });
 ```
 
-現在の仕様ではカジュアルに操作できるよう、確認ダイアログを挟まず削除します。成功後は一覧を再取得し、トーストを表示します。
+現在は誤操作を防ぐため、`window.confirm()`で確認してから削除します。成功後は一覧を再取得し、トーストを表示します。
 
-### 8-2. Prismaで本人の記録だけ削除する
+### 8-2. 削除前に本人の記録か確認する
 
 ```ts
-const result = await prisma.trainingRecord.deleteMany({
+const record = await prisma.trainingRecord.findFirst({
   where: { id, userId: user.id },
+  select: { id: true, exerciseId: true, recordedAt: true },
 });
 ```
 
-ここで`delete()`ではなく`deleteMany()`を使う利点は、`id`と`userId`をまとめて条件にでき、対象がなくても例外ではなく`count: 0`を受け取れることです。
+`id`だけでなく`userId`も条件に含め、他人の記録を削除できないようにします。対象が見つからなければ404を返します。
 
 ```ts
-if (result.count === 0) {
+if (!record) {
   return NextResponse.json(
     { error: "記録が見つかりません" },
     { status: 404 },
   );
 }
-
-return new NextResponse(null, { status: 204 });
 ```
 
-`204 No Content`は「処理は成功したが、返す本文はない」という意味です。
+### 8-3. 削除とセット番号更新を同時に行う
+
+```ts
+await prisma.$transaction(async (transaction) => {
+  await transaction.trainingRecord.delete({ where: { id: record.id } });
+
+  const remainingRecords = await transaction.trainingRecord.findMany({
+    where: {
+      userId: user.id,
+      exerciseId: record.exerciseId,
+      recordedAt: { gte: start, lt: end },
+    },
+    orderBy: [{ recordedAt: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+    select: { id: true },
+  });
+
+  for (const [index, remainingRecord] of remainingRecords.entries()) {
+    await transaction.trainingRecord.update({
+      where: { id: remainingRecord.id },
+      data: { setOrder: index + 1 },
+    });
+  }
+});
+```
+
+例えば2セット目を削除すると、残ったセットを`1, 2, 3...`へ振り直します。削除と並び替えを同じトランザクションへ入れることで、片方だけ成功する状態を防ぎます。
+
+最後に`204 No Content`を返します。これは「処理は成功したが、返す本文はない」という意味です。
 
 ---
 
@@ -727,9 +807,268 @@ DBから行そのものを消すことを物理削除、状態を変更して利
 
 一方、トレーニング記録の削除は現在`DELETE`による物理削除です。
 
+### 15-1. 目標保存時に関連データも残す
+
+`POST /api/goals`では、次のデータを1つのトランザクションで保存します。
+
+1. 相談した種目
+2. ユーザーとAIの会話履歴
+3. Geminiが生成した目標候補
+4. 選択した候補
+5. 有効なトレーニング目標
+
+これにより「最終的な目標」だけでなく、「どの相談と候補から決まったか」も追跡できます。
+
+### 15-2. 目標と種目を一致させる
+
+`TrainingGoal`は`exerciseId`を持っています。画面へ返す際は関連する種目名も取得します。
+
+```ts
+include: {
+  exercise: {
+    select: { name: true },
+  },
+}
+```
+
+`/report`では選択中の種目と目標の種目を比較します。
+
+```ts
+const selectedExerciseGoal =
+  activeGoal?.exercise === exercise ? activeGoal : null;
+```
+
+ベンチプレスの目標がある状態でスクワットを選んでも、ベンチプレスの目標を誤表示しません。ホーム、相談、報告では次の順番に表示を統一しています。
+
+```text
+今日の目標
+ベンチプレス
+フォームを崩さず10回を3セット行う
+```
+
+### 15-3. 保存済み候補から目標を変更する
+
+`GET /api/goals/[id]`で相談時の候補を取得し、`PATCH /api/goals/[id]`で選択候補を変更します。PATCHでは次を同じトランザクションで更新します。
+
+- 全候補の`isSelected`を`false`にする
+- 新しく選んだ候補だけ`true`にする
+- `training_goals`のタイトルと説明を変更する
+
+### 15-4. 目標削除は論理削除
+
+```ts
+await prisma.trainingGoal.updateMany({
+  where: { id, userId: user.id, status: "active" },
+  data: { status: "cancelled" },
+});
+```
+
+画面ではブラウザ標準アラートではなく、共通の`GoalDeleteAction`を使ってカード内で確認します。
+
+```text
+削除しますか？ [キャンセル] [削除する]
+```
+
+`isGoalDeleteConfirming`は確認UIの表示、`isDeletingGoal`はAPI通信中かどうかを表します。似た状態でも役割を分けることで、表示と通信を正しく制御できます。
+
 ---
 
-## 16. 最低限、自力で書けるようにしたいテンプレート
+## 16. Gemini APIを使ったAI相談
+
+AI機能は大きく2種類あります。
+
+| API | 役割 |
+|---|---|
+| `POST /api/chat` | 相談・報告の会話に返答する |
+| `POST /api/goals/proposals` | 会話内容から目標候補を2〜3件作る |
+
+### 16-1. 外部入力を型ガードで確認する
+
+チャットAPIでは、リクエストJSONを最初から信用しません。
+
+```ts
+const isChatRequestBody = (value: unknown): value is ChatRequestBody => {
+  // messages・role・contentなどを実行時に確認
+};
+```
+
+`value is ChatRequestBody`はユーザー定義型ガードです。関数が`true`を返した後、TypeScriptは値を`ChatRequestBody`として扱えます。
+
+### 16-2. 画面の会話をGemini形式へ変換する
+
+画面では`assistant`というroleを使いますが、Geminiでは`model`へ変換します。
+
+```ts
+contents: messages.map((message) => ({
+  role: message.role === "assistant" ? "model" : "user",
+  parts: [{ text: message.content }],
+}));
+```
+
+アプリ内の型と外部APIの仕様が違う場合、境界で変換するのが基本です。
+
+### 16-3. AIのJSONも再検証する
+
+目標候補ではGeminiへJSON形式を指定していますが、返答をそのままDBへ保存しません。
+
+```ts
+const parsed = goalProposalListSchema.safeParse(
+  JSON.parse(extractText(data)),
+);
+```
+
+生成AIの返答は外部入力です。JSONとして解析できるか、必要な件数・文字列が揃っているかをZodで再確認します。
+
+### 16-4. モックと本番AIを切り替える
+
+```ts
+const shouldUseMockAi = process.env.USE_MOCK_AI === "true";
+```
+
+- `true`: 固定応答を返し、API料金やネットワークに依存せず開発する
+- `false`: `GEMINI_API_KEY`を使ってGeminiを呼び出す
+
+秘密情報である`GEMINI_API_KEY`はサーバー側だけで使用し、`NEXT_PUBLIC_`を付けません。
+
+---
+
+## 17. React Hook Formと認証画面
+
+ログイン・新規登録画面ではReact Hook FormとZodを組み合わせています。
+
+```ts
+const {
+  register,
+  handleSubmit,
+  formState: { errors, isSubmitting },
+} = useForm<LoginFormValues>({
+  resolver: zodResolver(loginSchema),
+});
+```
+
+### register
+
+```tsx
+<input {...register("email")} />
+```
+
+`register()`は`name`、`onChange`、`onBlur`、`ref`などを返し、通常のinputをフォーム管理へ接続します。
+
+### handleSubmit
+
+```tsx
+<form onSubmit={handleSubmit(onSubmit)}>
+```
+
+入力検証に成功した場合だけ`onSubmit`を呼びます。
+
+### Controller
+
+新規登録の性別選択は通常のinputではなくボタンUIなので、`Controller`を使います。
+
+```tsx
+<Controller
+  name="gender"
+  control={control}
+  render={({ field }) => (
+    <GenderSelector value={field.value} onChange={field.onChange} />
+  )}
+/>
+```
+
+### Supabase Auth
+
+- ログイン: `signInWithPassword()`
+- 新規登録: `signUp()`
+- パスワード変更: `updateUser()`
+- サーバーでの本人確認: `getUser()`
+
+認証成功後の`router.refresh()`は、Server Componentにも最新の認証状態を反映するために使います。
+
+ブラウザの自動入力で背景色が変わらないよう、認証inputには`auth-input`クラスと`:autofill`スタイルを適用しています。
+
+---
+
+## 18. SP・PCのレスポンシブ構成
+
+RepMateはデータ処理を共有し、見た目だけをSPとPCへ分けています。
+
+```text
+ReportScreen（state・API処理）
+  ├─ MobileReportView
+  └─ DesktopReportView
+```
+
+### 共通状態を親で管理する理由
+
+`records`、`exercise`、`isSavingRecord`などを親の`ReportScreen`で管理すると、SPとPCで保存処理を二重実装せずに済みます。各ViewにはPropsで値とイベント関数を渡します。
+
+### SPの固定領域
+
+- `MobileAppHeader`: 画面上部
+- スクロール可能な`main`: 中央
+- `AppTabBar`: 画面下部
+
+`min-h-0`、`flex-1`、`overflow-y-auto`を組み合わせ、固定領域を除いた残りの高さだけをスクロールさせます。
+
+### ResponsiveScreen
+
+SPとPCの表示切り替えを共通化しています。画面ごとのコンポーネントは、ブレークポイント判定を繰り返し書く必要がありません。
+
+### モバイル入力の注意
+
+iOS Safariは16px未満のinputへフォーカスすると自動拡大することがあります。SPの入力文字は16px以上にすると、入力後に画面倍率が残る問題を防ぎやすくなります。
+
+---
+
+## 19. 進捗画面は記録から算出する
+
+`/progress`は保存済みの`training_records`を基に表示します。
+
+主な処理は次のとおりです。
+
+1. 過去90日分を種目ごとに取得
+2. 重量と回数から推定1RMを計算
+3. 日付ごとの最大値を作る
+4. 前回値との増減率を計算
+5. 自己ベストとAIトレーナーの分析文を表示
+
+画面用の計算処理は`progress/_lib/progress.ts`へ分離しています。表示コンポーネントから複雑な集計を外すことで、関数単位で読みやすくなります。
+
+AIトレーナーのアイコンは相談・報告・進捗で`trainer-avatar.png`へ統一しています。
+
+---
+
+## 20. コンポーネントと型を分ける判断
+
+RepMateでは、再利用するUIや複雑なProps型を別ファイルへ分けています。
+
+例:
+
+| UI | Props型 |
+|---|---|
+| `TrainerChat.tsx` | `_types/trainer-chat.ts` |
+| `GoalDeleteAction.tsx` | `_types/goal-delete-action.ts` |
+| `HomeActionCard.tsx` | `_types/home.ts` |
+
+一方、1コンポーネント内だけで使う単純な型は、近くに置く場合もあります。
+
+```ts
+const CurrentGoalSummary = ({ goal }: { goal: GoalSummary }) => ...;
+```
+
+すべての型を機械的に分離するのではなく、次を目安にします。
+
+- 複数ファイルで使う
+- Propsが多い
+- 業務上の意味を持つ
+- 別ファイルにした方が画面コードを読みやすくできる
+
+ホームの「相談する」「報告する」「目標を設定する」にはNext.jsの`Link`を使います。単なる`button`では遷移しないため、見た目だけでなく実際の操作まで確認することが重要です。
+
+---
+
+## 21. 最低限、自力で書けるようにしたいテンプレート
 
 ### クライアント側
 
@@ -779,7 +1118,7 @@ export const POST = async (request: Request) => {
 
 ---
 
-## 17. セキュリティ上、外してはいけない記述
+## 22. セキュリティ上、外してはいけない記述
 
 次は「短くしたいから」と削除してはいけません。
 
@@ -804,7 +1143,7 @@ where: { id, userId: user.id }
 
 ---
 
-## 18. 学習課題
+## 23. 学習課題
 
 ### レベル1: 読んで答える
 
@@ -829,26 +1168,31 @@ where: { id, userId: user.id }
 
 ---
 
-## 19. 理解度チェックリスト
+## 24. 理解度チェックリスト
 
 - [ ] CRUDの4単語とHTTPメソッドを対応させられる
 - [ ] `fetch`のPOSTを見ずに書ける
 - [ ] `async / await`を説明できる
 - [ ] `unknown`と`any`の違いを説明できる
 - [ ] `safeParse()`成功後に`result.data`を使う理由が分かる
-- [ ] `findMany`、`createMany`、`update`、`deleteMany`の役割が分かる
+- [ ] `findMany`、`createMany`、`update`、`delete`の役割が分かる
 - [ ] 認証と認可の違いを説明できる
 - [ ] `userId: user.id`が必要な理由を説明できる
 - [ ] `try / catch / finally`を書ける
 - [ ] `useState`と`useEffect`の役割を説明できる
 - [ ] `string | null`、配列型、`keyof`を読める
 - [ ] DB更新後に画面を更新する方法を説明できる
+- [ ] 物理削除と論理削除の違いを説明できる
+- [ ] Geminiの返答を再検証する理由が分かる
+- [ ] `register`、`handleSubmit`、`Controller`の役割を説明できる
+- [ ] Server ComponentとClient Componentの役割を説明できる
+- [ ] SPとPCで状態管理を共通化する理由が分かる
 
-8個以上説明できれば、今回のCRUD実装の主要部分はかなり身についています。説明できない項目は、その項目に関係する実コードへ戻って確認してください。
+12個以上説明できれば、現在のRepMate実装の主要部分はかなり身についています。説明できない項目は、その項目に関係する実コードへ戻って確認してください。
 
 ---
 
-## 20. 最後に押さえる要点
+## 25. 最後に押さえる要点
 
 RepMateのCRUDで最も大切なのは、Prismaのメソッド名を暗記することだけではありません。
 
@@ -858,5 +1202,9 @@ RepMateのCRUDで最も大切なのは、Prismaのメソッド名を暗記する
 4. Prismaが本人のデータだけを操作する
 5. 成功・失敗を適切なステータスで返す
 6. 画面が結果を受けてstateを更新する
+7. 外部AIの返答もZodで再検証する
+8. SP・PCの表示を分けても、状態とAPI処理は共通化する
+9. DBにある種目との関連を画面表示でも失わない
+10. 破壊的な操作には確認UIを用意する
 
-この一連の流れを、`Create → Read → Update → Delete`の順に実コードを指しながら説明できれば、次のCRUD機能は自力で組み立てやすくなります。
+この一連の流れを実コードを指しながら説明できれば、CRUDだけでなく、認証・生成AI・レスポンシブ画面を含むアプリ機能を自力で組み立てやすくなります。
