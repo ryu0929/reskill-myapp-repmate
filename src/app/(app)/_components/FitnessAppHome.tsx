@@ -22,14 +22,9 @@ const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
     <h2 className="text-xs font-bold text-[#9ca3af]">今日の目標</h2>
     {goal ? (
       <div className="flex flex-col gap-3 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-            <p className="text-sm font-bold text-[#f9fafb]">{goal.name}</p>
-          </div>
-          <span className="shrink-0 text-[11px] font-bold text-[#10b981]">
-            {goal.statusLabel}
-          </span>
+        <div className="flex items-center gap-2">
+          <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
+          <p className="text-sm font-bold text-[#f9fafb]">{goal.exercise}</p>
         </div>
         <p className="text-[13px] leading-[1.4] text-[#9ca3af]">
           {goal.description}
@@ -231,14 +226,9 @@ const DesktopGoalPanel = ({ goal }: { goal?: GoalSummary | null }) => (
     <h2 className="text-sm font-bold text-[#98a2b3]">今日の目標</h2>
     {goal ? (
       <div className="flex min-h-[180px] flex-col items-start gap-4 rounded-xl border border-[#273142] bg-[linear-gradient(164deg,#161c27_25%,#080b10_75%)] p-6">
-        <div className="flex w-full items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-            <p className="text-sm font-bold text-[#f8fafc]">{goal.name}</p>
-          </div>
-          <span className="shrink-0 text-xs font-bold text-[#10b981]">
-            {goal.statusLabel}
-          </span>
+        <div className="flex items-center gap-2">
+          <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
+          <p className="text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
         </div>
         <p className="text-sm leading-[1.5] text-[#98a2b3]">
           {goal.description}

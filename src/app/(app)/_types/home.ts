@@ -1,6 +1,5 @@
 export type GoalSummary = {
-  name: string;
-  statusLabel: string;
+  exercise: string;
   description: string;
 };
 

@@ -38,8 +38,7 @@ const Home = async () => {
       goal={
         activeGoal
           ? {
-              name: activeGoal.title,
-              statusLabel: "設定済み",
+              exercise: activeGoal.exerciseName,
               description: activeGoal.description,
             }
           : null
