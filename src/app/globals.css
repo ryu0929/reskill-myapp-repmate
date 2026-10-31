@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* ブラウザの自動入力による明るい背景色を、認証フォームの配色に合わせる。 */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:autofill {
+  box-shadow: 0 0 0 1000px #141822 inset;
+  -webkit-text-fill-color: #f9fafb;
+  caret-color: #f9fafb;
+}
+
 :root {
   --background: #050608;
   --foreground: #f9fafb;

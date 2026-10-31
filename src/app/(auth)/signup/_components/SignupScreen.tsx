@@ -53,7 +53,7 @@ const AuthInput = ({
         type={type}
         placeholder={placeholder}
         {...inputProps}
-        className="min-w-0 flex-1 bg-transparent text-sm text-[#f9fafb] outline-none placeholder:text-[#9ca3af] min-[769px]:text-[15px]"
+        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[#f9fafb] outline-none placeholder:text-[#9ca3af] min-[769px]:text-[15px]"
       />
     </span>
     {error && <p className="text-xs text-red-400">{error}</p>}
