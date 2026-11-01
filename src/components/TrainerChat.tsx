@@ -113,6 +113,7 @@ export const TrainerChatArea = ({
 export const TrainerChatInput = ({
   input,
   isSending,
+  placeholder = "メッセージを入力...",
   onChange,
   onSubmit,
   desktop = false,
@@ -128,7 +129,7 @@ export const TrainerChatInput = ({
     <input
       value={input}
       onChange={(event) => onChange(event.target.value)}
-      placeholder="メッセージを入力..."
+      placeholder={placeholder}
       className="min-w-0 flex-1 bg-transparent text-[13px] text-[#f9fafb] outline-none placeholder:text-[#9ca3af]"
       disabled={isSending}
     />

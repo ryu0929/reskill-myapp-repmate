@@ -491,6 +491,7 @@ const MobileReportView = ({
       <TrainerChatInput
         input={input}
         isSending={isSending}
+        placeholder="60kg 10回 3セット行いました"
         onChange={onInputChange}
         onSubmit={onSubmit}
       />
@@ -612,6 +613,7 @@ const DesktopReportView = ({
         <TrainerChatInput
           input={input}
           isSending={isSending}
+          placeholder="60kg 10回 3セット行いました"
           onChange={onInputChange}
           onSubmit={onSubmit}
           desktop

@@ -11,6 +11,7 @@ export type TrainerChatAreaProps = {
 export type TrainerChatInputProps = {
   input: string;
   isSending: boolean;
+  placeholder?: string;
   onChange: (value: string) => void;
   onSubmit: (event?: FormEvent) => void;
   desktop?: boolean;
