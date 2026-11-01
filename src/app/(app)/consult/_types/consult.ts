@@ -29,14 +29,6 @@ export type ConsultScreenProps = {
   userName?: string;
 };
 
-export type ExerciseSelectorProps = {
-  exercise: Exercise;
-  isOpen: boolean;
-  onToggle: () => void;
-  onChange: (exercise: Exercise) => void;
-  desktop?: boolean;
-};
-
 export type GoalProposalCardProps = {
   proposal: GoalProposal;
   selected: boolean;

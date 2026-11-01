@@ -5,11 +5,11 @@ import { useState } from "react";
 import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import ExerciseSelector from "@/components/ExerciseSelector";
 import { EXERCISES } from "../_types/progress";
 import type {
   ChartPoint,
   Exercise,
-  ExerciseSelectorProps,
   OneRepMaxCardProps,
   PersonalBest,
   ProgressScreenProps,
@@ -23,46 +23,6 @@ const assets = {
 } as const;
 
 const formatWeight = (value: number) => value.toFixed(1);
-
-const ExerciseSelector = ({
-  exercise,
-  isOpen,
-  onToggle,
-  onChange,
-  desktop = false,
-}: ExerciseSelectorProps) => (
-  <div className="relative w-full shrink-0">
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`flex w-full items-center justify-between rounded-lg border bg-[#141822] text-left ${
-        desktop ? "border-[#273142] p-3.5" : "border-[#242c3b] p-3.5"
-      }`}
-    >
-      <span className="text-[15px] font-bold text-[#f9fafb]">{exercise}</span>
-      <span className="flex items-center gap-1 text-xs font-bold text-[#9ca3af] min-[769px]:text-[13px]">
-        種目を変更
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img alt="" className="size-3.5" src={assets.chevronDown} />
-      </span>
-    </button>
-    {isOpen && (
-      <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-[#273142] bg-[#141822] shadow-lg">
-        {EXERCISES.map((item) => (
-          <li key={item}>
-            <button
-              type="button"
-              onClick={() => onChange(item)}
-              className="w-full px-3 py-2.5 text-left text-sm text-[#f9fafb] hover:bg-[#1d2432]"
-            >
-              {item}
-            </button>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
 
 const OneRepMaxCard = ({
   estimatedOneRepMax,
@@ -338,6 +298,7 @@ const MobileProgressView = ({
     <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-5 [&>*]:shrink-0">
       <ExerciseSelector
         exercise={exercise}
+        options={EXERCISES}
         isOpen={showExercisePicker}
         onToggle={onExerciseToggle}
         onChange={onExerciseChange}
@@ -365,6 +326,7 @@ const DesktopProgressView = ({
   <main className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-10">
     <ExerciseSelector
       exercise={exercise}
+      options={EXERCISES}
       isOpen={showExercisePicker}
       onToggle={onExerciseToggle}
       onChange={onExerciseChange}

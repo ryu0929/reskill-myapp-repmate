@@ -13,24 +13,22 @@ import { AppTabBar } from "@/components/AppTabBar";
 import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import RecordDraftCard from "./RecordDraftCard";
+import TrainingRecordList from "./TrainingRecordList";
+import AddRecordButton from "./AddRecordButton";
+import ReportSidePanel from "./ReportSidePanel";
+import ExerciseSelector from "@/components/ExerciseSelector";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import type { TrainingRecordItem } from "@/lib/_types/training-record";
 import { EXERCISES } from "../_types/report";
 import type {
   Exercise,
-  ExerciseSelectorProps,
   GoalSummary,
-  RecordDraftCardProps,
   ReportScreenProps,
   ReportViewProps,
-  TrainingRecordListProps,
   TrainingRecordDraft,
 } from "../_types/report";
-
-const assets = {
-  chevronDown: "/assets/consult/chevron-down.svg",
-} as const;
 
 const createId = () => crypto.randomUUID();
 
@@ -96,313 +94,6 @@ const GoalSection = ({
   );
 };
 
-const ExerciseSelector = ({
-  exercise,
-  isOpen,
-  onToggle,
-  onChange,
-  desktop = false,
-}: ExerciseSelectorProps) => (
-  <div className="relative w-full shrink-0">
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`flex w-full items-center justify-between rounded-lg border bg-[#141822] text-left ${
-        desktop ? "border-[#273142] p-4" : "border-[#242c3b] p-3"
-      }`}
-    >
-      <span className="text-sm font-bold text-[#f9fafb]">{exercise}</span>
-      <span className="flex items-center gap-1 text-xs text-[#9ca3af] min-[769px]:text-[13px]">
-        種目を変更
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img alt="" className="h-[5px] w-2" src={assets.chevronDown} />
-      </span>
-    </button>
-    {isOpen && (
-      <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-[#273142] bg-[#141822] shadow-lg">
-        {EXERCISES.map((item) => (
-          <li key={item}>
-            <button
-              type="button"
-              onClick={() => onChange(item)}
-              className="w-full px-3 py-2.5 text-left text-sm text-[#f9fafb] hover:bg-[#1d2432]"
-            >
-              {item}
-            </button>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
-
-const RecordDraftCard = ({
-  draft,
-  isSaving,
-  onChange,
-  onSave,
-  onCancel,
-}: RecordDraftCardProps) => (
-  <section className="shrink-0 rounded-lg border border-[#2463eb] bg-[#111827] p-3.5">
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="text-sm font-bold text-[#f8fafc]">記録内容を確認</h2>
-      <span className="text-[11px] font-bold text-[#5b8cff]">保存前</span>
-    </div>
-    <div className="mt-3 grid grid-cols-3 gap-2">
-      {(
-        [
-          ["weight", "重量", "kg"],
-          ["reps", "回数", "回"],
-          ["sets", "セット", "セット"],
-        ] as const
-      ).map(([field, label, unit]) => (
-        <label key={field} className="min-w-0 text-[11px] text-[#98a2b3]">
-          {label}
-          <span className="mt-1 flex items-center gap-1 rounded-md border border-[#384255] bg-[#0b0d12] px-2 py-1.5 focus-within:border-[#2463eb]">
-            <input
-              type="number"
-              min="1"
-              step={field === "weight" ? "0.5" : "1"}
-              value={draft[field]}
-              onChange={(event) => onChange(field, event.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#f8fafc] outline-none"
-              aria-label={label}
-            />
-            <span className="shrink-0 text-[10px]">{unit}</span>
-          </span>
-        </label>
-      ))}
-    </div>
-    <div className="mt-3 grid grid-cols-2 gap-2">
-      <button
-        type="button"
-        onClick={onCancel}
-        disabled={isSaving}
-        className="rounded-lg border border-[#384255] px-3 py-2 text-xs font-bold text-[#98a2b3] disabled:opacity-40"
-      >
-        キャンセル
-      </button>
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={isSaving || !draft.weight || !draft.reps || !draft.sets}
-        className="rounded-lg bg-[#2463eb] px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
-      >
-        {isSaving ? "記録中…" : "記録する"}
-      </button>
-    </div>
-  </section>
-);
-
-const TrainingRecordList = ({
-  records,
-  isLoadingRecords,
-  editingRecordId,
-  editWeight,
-  editReps,
-  onStartEdit,
-  onEditWeightChange,
-  onEditRepsChange,
-  onSaveEdit,
-  onCancelEdit,
-  onDelete,
-}: TrainingRecordListProps) => {
-  // 読み込み中・0件・編集・通常表示を一つの一覧で切り替える。
-  if (isLoadingRecords) {
-    return (
-      <div
-        className="rounded-lg border border-[#273142] bg-[#141822] p-4"
-        role="status"
-      >
-        <p className="text-[13px] text-[#98a2b3]">本日の記録を読み込み中…</p>
-      </div>
-    );
-  }
-
-  if (records.length === 0) {
-    return (
-      <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
-        <p className="text-[13px] text-[#98a2b3]">本日の記録はまだありません</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
-      {records.map((record) => {
-        const isEditing = editingRecordId === record.id;
-
-        return (
-          <div
-            key={record.id}
-            className="rounded-lg border border-[#273142] bg-[#141822] p-3"
-          >
-            {isEditing ? (
-              <div className="grid grid-cols-2 gap-2">
-                <label className="text-[10px] text-[#98a2b3]">
-                  重量
-                  <input
-                    type="number"
-                    min="1"
-                    step="0.5"
-                    value={editWeight}
-                    onChange={(event) => onEditWeightChange(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-[#384255] bg-[#0b0d12] px-2 py-1.5 text-sm text-[#f8fafc] outline-none focus:border-[#2463eb]"
-                  />
-                </label>
-                <label className="text-[10px] text-[#98a2b3]">
-                  回数
-                  <input
-                    type="number"
-                    min="1"
-                    value={editReps}
-                    onChange={(event) => onEditRepsChange(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-[#384255] bg-[#0b0d12] px-2 py-1.5 text-sm text-[#f8fafc] outline-none focus:border-[#2463eb]"
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={onCancelEdit}
-                  className="rounded-md border border-[#384255] py-1.5 text-[11px] font-bold text-[#98a2b3]"
-                >
-                  キャンセル
-                </button>
-                <button
-                  type="button"
-                  onClick={onSaveEdit}
-                  className="rounded-md bg-[#2463eb] py-1.5 text-[11px] font-bold text-white"
-                >
-                  保存
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold text-[#f8fafc]">
-                    {record.weight}kg × {record.reps}回
-                  </p>
-                  <span className="text-[11px] font-bold text-[#5b8cff]">
-                    {record.setOrder}セット目
-                  </span>
-                </div>
-                <div className="mt-2 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => onStartEdit(record)}
-                    className="text-[11px] font-bold text-[#98a2b3] hover:text-[#f8fafc]"
-                  >
-                    編集
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(record.id)}
-                    className="text-[11px] font-bold text-[#ef6b73] hover:text-[#ff8a91]"
-                  >
-                    削除
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-const AddRecordButton = ({ onClick }: { onClick: () => void }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-dashed border-[#384255] bg-[#141822] px-4 py-2.5 text-sm font-bold text-[#5b8cff] transition-colors hover:border-[#5b8cff] hover:bg-[#17213a]"
-  >
-    <span className="text-lg leading-none" aria-hidden>
-      ＋
-    </span>
-    セットを追加
-  </button>
-);
-
-const ReportSidePanel = ({
-  goal = null,
-  records,
-  isDeletingGoal,
-  isGoalDeleteConfirming,
-  isLoadingRecords,
-  editingRecordId,
-  editWeight,
-  editReps,
-  onStartEditRecord,
-  onEditWeightChange,
-  onEditRepsChange,
-  onSaveRecordEdit,
-  onCancelRecordEdit,
-  onDeleteRecord,
-  onAddRecord,
-  onRequestGoalDelete,
-  onCancelGoalDelete,
-  onDeleteGoal,
-}: ReportViewProps) => (
-  <aside className="flex h-full w-[380px] shrink-0 flex-col gap-5 border-l border-[#273142] bg-[#111620] p-6">
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="text-lg font-bold text-[#f8fafc]">今日の目標</h2>
-      {!goal && (
-        <span className="rounded-md bg-[rgba(102,112,133,0.13)] px-2 py-1 text-[11px] font-bold text-[#98a2b3]">
-          未設定
-        </span>
-      )}
-    </div>
-
-    {goal ? (
-      <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-            <p className="text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
-          </div>
-          <GoalDeleteAction
-            isConfirming={isGoalDeleteConfirming}
-            isDeleting={isDeletingGoal}
-            onRequest={onRequestGoalDelete}
-            onCancel={onCancelGoalDelete}
-            onConfirm={onDeleteGoal}
-          />
-        </div>
-        <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
-          {goal.detail}
-        </p>
-      </div>
-    ) : (
-      <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
-        <p className="text-sm leading-none text-[#98a2b3]">目標は未設定です</p>
-      </div>
-    )}
-
-    <div className="flex min-h-0 flex-1 flex-col gap-3 border-t border-[#273142] pt-5">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-bold text-[#f8fafc]">本日の記録</h2>
-        <span className="text-[11px] font-bold text-[#5b8cff]">
-          {records.length}セット
-        </span>
-      </div>
-      <TrainingRecordList
-        records={records}
-        isLoadingRecords={isLoadingRecords}
-        editingRecordId={editingRecordId}
-        editWeight={editWeight}
-        editReps={editReps}
-        onStartEdit={onStartEditRecord}
-        onEditWeightChange={onEditWeightChange}
-        onEditRepsChange={onEditRepsChange}
-        onSaveEdit={onSaveRecordEdit}
-        onCancelEdit={onCancelRecordEdit}
-        onDelete={onDeleteRecord}
-      />
-      {records.length > 0 && <AddRecordButton onClick={onAddRecord} />}
-    </div>
-  </aside>
-);
-
 const MobileReportView = ({
   goal,
   exercise,
@@ -460,6 +151,7 @@ const MobileReportView = ({
       />
       <ExerciseSelector
         exercise={exercise}
+        options={EXERCISES}
         isOpen={showExercisePicker}
         onToggle={onExerciseToggle}
         onChange={onExerciseChange}
@@ -588,6 +280,7 @@ const DesktopReportView = ({
       <div className="flex min-h-0 w-full max-w-[720px] flex-1 flex-col gap-5">
         <ExerciseSelector
           exercise={exercise}
+          options={EXERCISES}
           isOpen={showExercisePicker}
           onToggle={onExerciseToggle}
           onChange={onExerciseChange}
@@ -622,30 +315,13 @@ const DesktopReportView = ({
     </section>
     <ReportSidePanel
       goal={goal}
-      exercise={exercise}
-      messages={messages}
-      input={input}
-      isSending={isSending}
-      isSavingRecord={isSavingRecord}
+      records={records}
       isDeletingGoal={isDeletingGoal}
       isGoalDeleteConfirming={isGoalDeleteConfirming}
       isLoadingRecords={isLoadingRecords}
-      isRecordPanelOpen={false}
-      showExercisePicker={showExercisePicker}
-      records={records}
-      recordDraft={recordDraft}
       editingRecordId={editingRecordId}
       editWeight={editWeight}
       editReps={editReps}
-      chatAreaRef={chatAreaRef}
-      onExerciseToggle={onExerciseToggle}
-      onExerciseChange={onExerciseChange}
-      onInputChange={onInputChange}
-      onRecordDraftChange={onRecordDraftChange}
-      onSaveRecord={onSaveRecord}
-      onCancelRecord={onCancelRecord}
-      onOpenRecordPanel={() => undefined}
-      onCloseRecordPanel={() => undefined}
       onStartEditRecord={onStartEditRecord}
       onEditWeightChange={onEditWeightChange}
       onEditRepsChange={onEditRepsChange}
@@ -656,7 +332,6 @@ const DesktopReportView = ({
       onRequestGoalDelete={onRequestGoalDelete}
       onCancelGoalDelete={onCancelGoalDelete}
       onDeleteGoal={onDeleteGoal}
-      onSubmit={onSubmit}
     />
   </main>
 );

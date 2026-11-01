@@ -6,6 +6,7 @@ import { AppTabBar } from "@/components/AppTabBar";
 import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import ExerciseSelector from "@/components/ExerciseSelector";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/consult";
@@ -14,7 +15,6 @@ import type {
   ConsultScreenProps,
   ConsultViewProps,
   Exercise,
-  ExerciseSelectorProps,
   GoalChangeActionsProps,
   GoalComposerContentProps,
   GoalProposal,
@@ -38,53 +38,6 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
   content: `こんにちは！今日は${exercise}について相談ですね。現在の記録と目標を教えてください。`,
   createdAt: new Date().toISOString(),
 });
-
-// 種目選択はモバイル・PCで同じ動作を使うため、共通部品にまとめる。
-const ExerciseSelector = ({
-  exercise,
-  isOpen,
-  onToggle,
-  onChange,
-  desktop = false,
-}: ExerciseSelectorProps) => (
-  <div className="relative shrink-0">
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`flex w-full items-center justify-between rounded-lg border text-left ${
-        desktop
-          ? "border-[#273142] bg-[#141822] p-4"
-          : "border-[#242c3b] bg-[#141822] p-3"
-      }`}
-    >
-      <span className="text-sm font-bold text-[#f9fafb]">{exercise}</span>
-      <span className="flex items-center gap-1 text-xs text-[#9ca3af] min-[769px]:text-[13px]">
-        種目を変更
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          alt=""
-          className="size-[11px] min-[769px]:h-[5px] min-[769px]:w-2"
-          src={assets.chevronDown}
-        />
-      </span>
-    </button>
-    {isOpen && (
-      <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-[#273142] bg-[#141822] shadow-lg">
-        {EXERCISES.map((item) => (
-          <li key={item}>
-            <button
-              type="button"
-              onClick={() => onChange(item)}
-              className="w-full px-3 py-2.5 text-left text-sm text-[#f9fafb] hover:bg-[#1d2432]"
-            >
-              {item}
-            </button>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
 
 const GoalProposalCard = ({
   proposal,
@@ -458,6 +411,7 @@ const MobileConsultView = ({
         )}
         <ExerciseSelector
           exercise={exercise}
+          options={EXERCISES}
           isOpen={showExercisePicker}
           onToggle={onExerciseToggle}
           onChange={onExerciseChange}
@@ -617,6 +571,7 @@ const DesktopConsultView = ({
           )}
           <ExerciseSelector
             exercise={exercise}
+            options={EXERCISES}
             isOpen={showExercisePicker}
             onToggle={onExerciseToggle}
             onChange={onExerciseChange}

@@ -29,14 +29,6 @@ export type TrainingRecordDraft = {
   sets: string;
 };
 
-export type ExerciseSelectorProps = {
-  exercise: Exercise;
-  isOpen: boolean;
-  onToggle: () => void;
-  onChange: (exercise: Exercise) => void;
-  desktop?: boolean;
-};
-
 export type RecordDraftCardProps = {
   draft: TrainingRecordDraft;
   isSaving: boolean;
@@ -86,6 +78,28 @@ export type ReportViewProps = {
   onDeleteGoal: () => void;
   onSubmit: (event?: FormEvent) => void;
 };
+
+export type ReportSidePanelProps = Pick<
+  ReportViewProps,
+  | "goal"
+  | "records"
+  | "isDeletingGoal"
+  | "isGoalDeleteConfirming"
+  | "isLoadingRecords"
+  | "editingRecordId"
+  | "editWeight"
+  | "editReps"
+  | "onStartEditRecord"
+  | "onEditWeightChange"
+  | "onEditRepsChange"
+  | "onSaveRecordEdit"
+  | "onCancelRecordEdit"
+  | "onDeleteRecord"
+  | "onAddRecord"
+  | "onRequestGoalDelete"
+  | "onCancelGoalDelete"
+  | "onDeleteGoal"
+>;
 
 export type TrainingRecordListProps = Pick<
   ReportViewProps,
