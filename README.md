@@ -6,7 +6,7 @@ RepMateは、トレーニングの相談、実績の記録、成長の確認を�
 
 - URL: <https://reskill-myapp-repmate.vercel.app/>
 - メールアドレス: `test@gmail.com`
-- パスワード: レビュー test1234
+- パスワード: `test1234`
 
 ログイン後、ホーム、AI相談、トレーニング報告、成長レポート、マイページを確認できます。
 

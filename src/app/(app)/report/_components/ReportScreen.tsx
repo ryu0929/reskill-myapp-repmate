@@ -29,8 +29,6 @@ import type {
 } from "../_types/report";
 
 const assets = {
-  avatar: "/assets/avatarIcon.svg",
-  logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
 } as const;
 

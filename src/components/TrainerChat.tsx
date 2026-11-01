@@ -15,6 +15,7 @@ const formatTime = (iso: string) =>
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    timeZone: "Asia/Tokyo",
   }).format(new Date(iso));
 
 const TrainerChatBubble = ({

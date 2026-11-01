@@ -23,8 +23,6 @@ import type {
 } from "../_types/consult";
 
 const assets = {
-  avatar: "/assets/avatarIcon.svg",
-  logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
   plusCircle: "/assets/consult/plus-circle.svg",
 } as const;

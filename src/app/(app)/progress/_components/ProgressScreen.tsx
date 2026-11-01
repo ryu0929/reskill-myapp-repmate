@@ -12,36 +12,15 @@ import type {
   ExerciseSelectorProps,
   OneRepMaxCardProps,
   PersonalBest,
-  ProgressData,
   ProgressScreenProps,
   ProgressViewProps,
 } from "../_types/progress";
 
 const assets = {
-  avatar: "/assets/avatarIcon.svg",
   aiAvatar: "/assets/trainer-avatar.png",
-  logo: "/assets/repmate-logo.svg",
   chevronDown: "/assets/consult/chevron-down.svg",
   trendingUp: "/assets/trending-up.svg",
 } as const;
-
-const defaultProgressData: ProgressData = {
-  exercise: "ベンチプレス",
-  estimatedOneRepMax: 92.5,
-  trendRate: 4.2,
-  chart: [
-    { label: "6月", value: 82 },
-    { label: "7月", value: 87.5 },
-    { label: "8月", value: 92.5 },
-  ],
-  personalBests: [
-    { label: "1RM", date: "2024年7月15日", value: 95, highlight: true },
-    { label: "5RM", date: "2024年8月10日", value: 82.5 },
-    { label: "10RM", date: "2024年8月20日", value: 70 },
-  ],
-  aiComment:
-    "順調に伸びています！特に8月に入ってからの成長が著しいです。このペースなら来月には95kgの壁を突破できるでしょう。フォームの安定性も向上しているので、自信を持って取り組んでください。",
-};
 
 const formatWeight = (value: number) => value.toFixed(1);
 
@@ -404,14 +383,10 @@ const DesktopProgressView = ({
   </main>
 );
 
-const ProgressScreen = ({
-  data = defaultProgressData,
-  dataByExercise,
-  userName,
-}: ProgressScreenProps) => {
-  const [exercise, setExercise] = useState<Exercise>(data.exercise);
+const ProgressScreen = ({ dataByExercise, userName }: ProgressScreenProps) => {
+  const [exercise, setExercise] = useState<Exercise>(EXERCISES[0]);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
-  const selectedData = dataByExercise?.[exercise] ?? data;
+  const selectedData = dataByExercise[exercise];
 
   const handleExerciseChange = (next: Exercise) => {
     setExercise(next);

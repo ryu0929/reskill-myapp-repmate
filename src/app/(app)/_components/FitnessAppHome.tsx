@@ -10,8 +10,6 @@ import type {
 import { HomeActionCard } from "./HomeActionCard";
 
 const assets = {
-  avatar: "/assets/avatarIcon.svg",
-  logo: "/assets/repmate-logo.svg",
   chevronRight: "/assets/chevron-right.svg",
   chevronRightGoal: "/assets/chevron-right-goal.svg",
   play: "/assets/play.svg",
