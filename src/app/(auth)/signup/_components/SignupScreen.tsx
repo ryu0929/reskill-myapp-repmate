@@ -8,13 +8,11 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/lib/supabase/client";
 import { genderOptions } from "../_types/signup";
-import type { AuthInputProps, Gender } from "../_types/signup";
+import AuthInput from "@/components/AuthInput";
+import type { Gender } from "../_types/signup";
 
 const assets = {
   logo: "/assets/repmate-logo.svg",
-  user: "/assets/auth/user.svg",
-  mail: "/assets/auth/mail.svg",
-  lock: "/assets/auth/lock.svg",
 } as const;
 
 // アカウント作成前に必要な名前・性別・メール・パスワードを検証する。
@@ -27,38 +25,6 @@ const signupSchema = z.object({
 
 // Zodスキーマを元に、フォーム全体の値の型を自動生成する。
 type SignupFormValues = z.infer<typeof signupSchema>;
-
-// registerから渡される入力属性も受け取れる、サインアップ用の共通入力部品。
-const AuthInput = ({
-  label,
-  type,
-  placeholder,
-  icon,
-  error,
-  ...inputProps
-}: AuthInputProps) => (
-  <label className="flex w-full flex-col gap-2">
-    <span className="text-xs font-medium text-[#9ca3af] min-[769px]:text-sm">
-      {label}
-    </span>
-    <span className="flex h-[50px] w-full items-center gap-3 rounded-[14px] border border-[#242c3b] bg-[#141822] px-4 min-[769px]:h-[54px]">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        alt=""
-        className="size-[19px] shrink-0 min-[769px]:size-5"
-        src={assets[icon]}
-      />
-      {/* name・onChange・onBlur・refを渡し、React Hook Formとinputを接続する。 */}
-      <input
-        type={type}
-        placeholder={placeholder}
-        {...inputProps}
-        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[#f9fafb] outline-none placeholder:text-[#9ca3af] min-[769px]:text-[15px]"
-      />
-    </span>
-    {error && <p className="text-xs text-red-400">{error}</p>}
-  </label>
-);
 
 const GenderSelector = ({
   value,

@@ -7,12 +7,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/lib/supabase/client";
-import type { AuthInputProps } from "../_types/login";
+import AuthInput from "@/components/AuthInput";
 
 const assets = {
   logo: "/assets/repmate-logo.svg",
-  mail: "/assets/auth/mail.svg",
-  lock: "/assets/auth/lock.svg",
 } as const;
 
 // Zodで、送信を許可するメールアドレスとパスワードの条件を定義する。
@@ -23,35 +21,6 @@ const loginSchema = z.object({
 
 // スキーマからフォーム値のTypeScript型を作り、定義の重複を防ぐ。
 type LoginFormValues = z.infer<typeof loginSchema>;
-
-// ラベル・アイコン・エラー表示を共通化した認証画面用の入力部品。
-const AuthInput = ({
-  label,
-  type,
-  placeholder,
-  icon,
-  error,
-  ...inputProps
-}: AuthInputProps) => (
-  <label className="flex w-full flex-col gap-2">
-    <span className="text-xs font-medium text-[#9ca3af]">{label}</span>
-
-    <span className="flex h-[50px] w-full items-center gap-3 overflow-hidden rounded-[14px] border border-[#242c3b] bg-[#141822] px-4">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" className="size-[19px] shrink-0" src={assets[icon]} />
-
-      {/* registerが返すname・onChange・onBlur・refをinputへ渡し、フォーム管理の対象にする。 */}
-      <input
-        type={type}
-        placeholder={placeholder}
-        {...inputProps}
-        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[#f9fafb] outline-none placeholder:text-[#9ca3af]"
-      />
-    </span>
-
-    {error && <p className="text-xs text-red-400">{error}</p>}
-  </label>
-);
 
 const LoginForm = () => {
   const router = useRouter();
