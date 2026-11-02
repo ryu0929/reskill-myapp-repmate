@@ -7,6 +7,8 @@ import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import ExerciseSelector from "@/components/ExerciseSelector";
+import Toast from "@/components/Toast";
+import useToast from "@/hooks/useToast";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/consult";
@@ -656,7 +658,7 @@ export const ConsultScreen = ({
   const [isReconsulting, setIsReconsulting] = useState(false);
   const [isGoalComposerOpen, setIsGoalComposerOpen] = useState(false);
   const [completedTurns, setCompletedTurns] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { toastMessage, showToast } = useToast();
   const mobileChatAreaRef = useRef<HTMLDivElement>(null);
   const desktopChatAreaRef = useRef<HTMLDivElement>(null);
 
@@ -675,13 +677,6 @@ export const ConsultScreen = ({
     scrollChatToBottom(mobileChatAreaRef.current);
     scrollChatToBottom(desktopChatAreaRef.current);
   }, [messages, isSending]);
-
-  useEffect(() => {
-    if (!toastMessage) return;
-
-    const timeoutId = window.setTimeout(() => setToastMessage(null), 3000);
-    return () => window.clearTimeout(timeoutId);
-  }, [toastMessage]);
 
   // ユーザーの入力を先に画面へ追加し、APIの返答を後から会話へ追加する。
   const sendMessage = async (event?: FormEvent) => {
@@ -782,7 +777,7 @@ export const ConsultScreen = ({
 
       setProposals(data.proposals);
     } catch (error) {
-      setToastMessage(
+      showToast(
         error instanceof Error
           ? error.message
           : "目標候補を作成できませんでした",
@@ -820,7 +815,7 @@ export const ConsultScreen = ({
       );
     } catch (error) {
       setIsChangingGoal(false);
-      setToastMessage(
+      showToast(
         error instanceof Error
           ? error.message
           : "保存済みの目標候補を取得できませんでした",
@@ -840,7 +835,7 @@ export const ConsultScreen = ({
     setIsReconsulting(true);
     setIsGoalComposerOpen(false);
     setCompletedTurns(0);
-    setToastMessage("新しい相談を開始しました");
+    showToast("新しい相談を開始しました");
   };
 
   // 新規設定はPOST、候補の選び直しはPATCHへ振り分ける。
@@ -901,10 +896,10 @@ export const ConsultScreen = ({
       setIsReconsulting(false);
       setIsGoalComposerOpen(false);
       setIsGoalDeleteConfirming(false);
-      setToastMessage(successMessage);
+      showToast(successMessage);
       router.refresh();
     } catch (error) {
-      setToastMessage(
+      showToast(
         error instanceof Error ? error.message : "目標を保存できませんでした",
       );
     } finally {
@@ -933,10 +928,10 @@ export const ConsultScreen = ({
       setIsReconsulting(false);
       setIsGoalComposerOpen(false);
       setIsGoalDeleteConfirming(false);
-      setToastMessage("目標を削除しました");
+      showToast("目標を削除しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(
+      showToast(
         error instanceof Error ? error.message : "目標を削除できませんでした",
       );
     } finally {
@@ -990,17 +985,7 @@ export const ConsultScreen = ({
           <DesktopConsultView {...viewProps} chatAreaRef={desktopChatAreaRef} />
         }
       />
-      <div
-        role="status"
-        aria-live="polite"
-        className={`fixed bottom-6 left-1/2 z-50 max-w-[calc(100%-32px)] -translate-x-1/2 rounded-lg border border-[#273142] bg-[#17213a] px-5 py-3 text-center text-sm font-bold text-[#f8fafc] shadow-xl transition-all duration-200 ${
-          toastMessage
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-2 opacity-0"
-        }`}
-      >
-        {toastMessage}
-      </div>
+      <Toast message={toastMessage} />
     </>
   );
 };

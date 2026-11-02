@@ -18,6 +18,8 @@ import TrainingRecordList from "./TrainingRecordList";
 import AddRecordButton from "./AddRecordButton";
 import ReportSidePanel from "./ReportSidePanel";
 import ExerciseSelector from "@/components/ExerciseSelector";
+import Toast from "@/components/Toast";
+import useToast from "@/hooks/useToast";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import type { TrainingRecordItem } from "@/lib/_types/training-record";
@@ -361,7 +363,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [editWeight, setEditWeight] = useState("");
   const [editReps, setEditReps] = useState("");
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { toastMessage, showToast } = useToast();
   const mobileChatAreaRef = useRef<HTMLDivElement>(null);
   const desktopChatAreaRef = useRef<HTMLDivElement>(null);
 
@@ -419,7 +421,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
       })
       .catch((error: unknown) => {
         if (!ignore) {
-          setToastMessage(
+          showToast(
             error instanceof Error
               ? error.message
               : "記録を取得できませんでした",
@@ -433,14 +435,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     return () => {
       ignore = true;
     };
-  }, [exercise, fetchRecords]);
-
-  useEffect(() => {
-    if (!toastMessage) return;
-
-    const timeoutId = window.setTimeout(() => setToastMessage(null), 3000);
-    return () => window.clearTimeout(timeoutId);
-  }, [toastMessage]);
+  }, [exercise, fetchRecords, showToast]);
 
   // AIへの報告と、正規表現による記録候補の作成を同時に行う。
   const sendMessage = async (event?: FormEvent) => {
@@ -534,7 +529,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     const reps = Number(recordDraft.reps);
     const sets = Number(recordDraft.sets);
     if (!weight || !reps || !sets) {
-      setToastMessage("重量・回数・セット数を確認してください");
+      showToast("重量・回数・セット数を確認してください");
       return;
     }
 
@@ -554,10 +549,10 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
       setRecordDraft(null);
       await loadRecords(exercise);
       setIsRecordPanelOpen(true);
-      setToastMessage("トレーニングを記録しました");
+      showToast("トレーニングを記録しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(
+      showToast(
         error instanceof Error ? error.message : "記録を保存できませんでした",
       );
     } finally {
@@ -584,7 +579,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     const weight = Number(editWeight);
     const reps = Number(editReps);
     if (!weight || !reps) {
-      setToastMessage("重量と回数を確認してください");
+      showToast("重量と回数を確認してください");
       return;
     }
 
@@ -601,10 +596,10 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
 
       cancelRecordEdit();
       await loadRecords(exercise);
-      setToastMessage("記録を更新しました");
+      showToast("記録を更新しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(
+      showToast(
         error instanceof Error ? error.message : "記録を更新できませんでした",
       );
     }
@@ -625,10 +620,10 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
 
       if (editingRecordId === recordId) cancelRecordEdit();
       await loadRecords(exercise);
-      setToastMessage("記録を削除しました");
+      showToast("記録を削除しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(
+      showToast(
         error instanceof Error ? error.message : "記録を削除できませんでした",
       );
     }
@@ -664,10 +659,10 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
 
       setActiveGoal(null);
       setIsGoalDeleteConfirming(false);
-      setToastMessage("目標を削除しました");
+      showToast("目標を削除しました");
       router.refresh();
     } catch (error) {
-      setToastMessage(
+      showToast(
         error instanceof Error ? error.message : "目標を削除できませんでした",
       );
     } finally {
@@ -728,17 +723,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
           <DesktopReportView {...viewProps} chatAreaRef={desktopChatAreaRef} />
         }
       />
-      <div
-        role="status"
-        aria-live="polite"
-        className={`fixed bottom-6 left-1/2 z-50 max-w-[calc(100%-32px)] -translate-x-1/2 rounded-lg border border-[#273142] bg-[#17213a] px-5 py-3 text-center text-sm font-bold text-[#f8fafc] shadow-xl transition-all duration-200 ${
-          toastMessage
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-2 opacity-0"
-        }`}
-      >
-        {toastMessage}
-      </div>
+      <Toast message={toastMessage} />
     </>
   );
 };
