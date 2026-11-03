@@ -6,6 +6,7 @@ import { AppTabBar } from "@/components/AppTabBar";
 import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import GoalCard from "@/components/GoalCard";
 import ExerciseSelector from "@/components/ExerciseSelector";
 import BottomSheet from "@/components/BottomSheet";
 import Toast from "@/components/Toast";
@@ -164,17 +165,11 @@ const ConfiguredGoalView = ({
         <h2 className="mt-1 text-xl font-bold text-[#f8fafc]">今日の目標</h2>
       </div>
 
-      <div className="flex flex-col gap-4 rounded-xl border border-[#273142] bg-[linear-gradient(164deg,#161c27_25%,#0b0d12_75%)] p-5 min-[769px]:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className="size-2 shrink-0 rounded-full bg-[#10b981]"
-              aria-hidden
-            />
-            <h3 className="text-base font-bold text-[#f8fafc]">
-              {goal.exercise}
-            </h3>
-          </div>
+      <GoalCard
+        exercise={goal.exercise}
+        description={goal.description}
+        desktop={desktop}
+        action={
           <GoalDeleteAction
             isConfirming={isGoalDeleteConfirming}
             isDeleting={isDeletingGoal}
@@ -182,11 +177,8 @@ const ConfiguredGoalView = ({
             onCancel={onCancelGoalDelete}
             onConfirm={onDeleteGoal}
           />
-        </div>
-        <p className="text-sm leading-[1.7] text-[#98a2b3]">
-          {goal.description}
-        </p>
-      </div>
+        }
+      />
 
       <GoalChangeActions
         onChangeGoal={onChangeGoal}
@@ -270,17 +262,10 @@ const GoalComposerContent = ({
           ))}
 
         {!isGeneratingGoals && !hasProposals && goal && (
-          <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className="size-2 shrink-0 rounded-full bg-[#10b981]"
-                  aria-hidden
-                />
-                <p className="text-sm font-bold text-[#f8fafc]">
-                  {goal.exercise}
-                </p>
-              </div>
+          <GoalCard
+            exercise={goal.exercise}
+            description={goal.description}
+            action={
               <GoalDeleteAction
                 isConfirming={isGoalDeleteConfirming}
                 isDeleting={isDeletingGoal}
@@ -288,11 +273,8 @@ const GoalComposerContent = ({
                 onCancel={onCancelGoalDelete}
                 onConfirm={onDeleteGoal}
               />
-            </div>
-            <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
-              {goal.description}
-            </p>
-          </div>
+            }
+          />
         )}
 
         {!isGeneratingGoals && !hasProposals && !goal && (

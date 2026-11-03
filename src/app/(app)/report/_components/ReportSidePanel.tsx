@@ -1,5 +1,6 @@
 import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import type { ReportSidePanelProps } from "../_types/report";
+import GoalCard from "@/components/GoalCard";
 import AddRecordButton from "./AddRecordButton";
 import TrainingRecordList from "./TrainingRecordList";
 
@@ -34,12 +35,10 @@ const ReportSidePanel = ({
     </div>
 
     {goal ? (
-      <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-            <p className="text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
-          </div>
+      <GoalCard
+        exercise={goal.exercise}
+        description={goal.detail}
+        action={
           <GoalDeleteAction
             isConfirming={isGoalDeleteConfirming}
             isDeleting={isDeletingGoal}
@@ -47,11 +46,8 @@ const ReportSidePanel = ({
             onCancel={onCancelGoalDelete}
             onConfirm={onDeleteGoal}
           />
-        </div>
-        <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
-          {goal.detail}
-        </p>
-      </div>
+        }
+      />
     ) : (
       <div className="rounded-lg border border-[#273142] bg-[#141822] p-4">
         <p className="text-sm leading-none text-[#98a2b3]">目標は未設定です</p>
