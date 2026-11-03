@@ -7,6 +7,7 @@ import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import ExerciseSelector from "@/components/ExerciseSelector";
+import BottomSheet from "@/components/BottomSheet";
 import Toast from "@/components/Toast";
 import useToast from "@/hooks/useToast";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
@@ -270,19 +271,24 @@ const GoalComposerContent = ({
 
         {!isGeneratingGoals && !hasProposals && goal && (
           <div className="flex flex-col gap-2.5 rounded-lg border border-[#273142] bg-[#141822] p-4">
-            <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-              <p className="text-sm font-bold text-[#f8fafc]">
-                {goal.exercise}
-              </p>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className="size-2 shrink-0 rounded-full bg-[#10b981]"
+                  aria-hidden
+                />
+                <p className="text-sm font-bold text-[#f8fafc]">
+                  {goal.exercise}
+                </p>
+              </div>
+              <GoalDeleteAction
+                isConfirming={isGoalDeleteConfirming}
+                isDeleting={isDeletingGoal}
+                onRequest={onRequestGoalDelete}
+                onCancel={onCancelGoalDelete}
+                onConfirm={onDeleteGoal}
+              />
             </div>
-            <GoalDeleteAction
-              isConfirming={isGoalDeleteConfirming}
-              isDeleting={isDeletingGoal}
-              onRequest={onRequestGoalDelete}
-              onCancel={onCancelGoalDelete}
-              onConfirm={onDeleteGoal}
-            />
             <p className="text-[13px] leading-[1.4] text-[#98a2b3]">
               {goal.description}
             </p>
@@ -450,30 +456,14 @@ const MobileConsultView = ({
       </div>
     )}
 
-    <div
-      className={`absolute inset-0 z-20 bg-black/40 transition-opacity duration-200 ${
-        isGoalComposerOpen ? "opacity-100" : "pointer-events-none opacity-0"
-      }`}
-      onClick={onCloseGoalComposer}
-      aria-hidden
-    />
-    <aside
-      aria-label="今日の目標候補"
-      className={`absolute inset-x-0 bottom-[calc(80px+env(safe-area-inset-bottom))] z-30 flex max-h-[72%] flex-col gap-4 rounded-t-2xl border-t border-[#242c3b] bg-gradient-to-r from-[#1a2744] to-[#0f1520] px-5 pb-5 pt-2 transition-transform duration-200 ease-out ${
-        isGoalComposerOpen ? "translate-y-0" : "translate-y-[110%]"
-      }`}
+    <BottomSheet
+      isOpen={isGoalComposerOpen}
+      onClose={onCloseGoalComposer}
+      ariaLabel="今日の目標候補"
+      closeLabel="目標候補を閉じる"
+      size="large"
+      variant="accent"
     >
-      <div className="relative flex justify-center">
-        <span className="h-1 w-10 rounded-full bg-[#384255]" aria-hidden />
-        <button
-          type="button"
-          onClick={onCloseGoalComposer}
-          className="absolute right-0 top-0 flex size-7 items-center justify-center text-lg text-[#98a2b3]"
-          aria-label="目標候補を閉じる"
-        >
-          ×
-        </button>
-      </div>
       <GoalComposerContent
         goal={goal}
         proposals={proposals}
@@ -494,7 +484,7 @@ const MobileConsultView = ({
         onCancelGoalDelete={onCancelGoalDelete}
         onDeleteGoal={onDeleteGoal}
       />
-    </aside>
+    </BottomSheet>
 
     <AppTabBar active="consult" />
   </div>
@@ -561,16 +551,6 @@ const DesktopConsultView = ({
     <main className="flex min-h-0 flex-1">
       <section className="flex min-w-0 flex-1 flex-col justify-between px-10 py-6">
         <div className="flex min-h-0 flex-1 flex-col gap-5">
-          {goal && isReconsulting && (
-            <CurrentGoalSummary
-              goal={goal}
-              isDeletingGoal={isDeletingGoal}
-              isGoalDeleteConfirming={isGoalDeleteConfirming}
-              onRequestGoalDelete={onRequestGoalDelete}
-              onCancelGoalDelete={onCancelGoalDelete}
-              onDeleteGoal={onDeleteGoal}
-            />
-          )}
           <ExerciseSelector
             exercise={exercise}
             options={EXERCISES}

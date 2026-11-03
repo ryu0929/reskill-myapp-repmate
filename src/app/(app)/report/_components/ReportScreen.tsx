@@ -18,6 +18,7 @@ import TrainingRecordList from "./TrainingRecordList";
 import AddRecordButton from "./AddRecordButton";
 import ReportSidePanel from "./ReportSidePanel";
 import ExerciseSelector from "@/components/ExerciseSelector";
+import BottomSheet from "@/components/BottomSheet";
 import Toast from "@/components/Toast";
 import useToast from "@/hooks/useToast";
 import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
@@ -191,30 +192,12 @@ const MobileReportView = ({
       />
     </main>
 
-    <div
-      className={`absolute inset-0 z-20 bg-black/40 transition-opacity duration-200 ${
-        isRecordPanelOpen ? "opacity-100" : "pointer-events-none opacity-0"
-      }`}
-      onClick={onCloseRecordPanel}
-      aria-hidden
-    />
-    <aside
-      aria-label="本日のトレーニング記録"
-      className={`absolute inset-x-0 bottom-[calc(80px+env(safe-area-inset-bottom))] z-30 flex max-h-[65%] flex-col gap-4 rounded-t-2xl border-t border-[#242c3b] bg-[#111620] px-5 pb-5 pt-2 transition-transform duration-200 ease-out ${
-        isRecordPanelOpen ? "translate-y-0" : "translate-y-[110%]"
-      }`}
+    <BottomSheet
+      isOpen={isRecordPanelOpen}
+      onClose={onCloseRecordPanel}
+      ariaLabel="本日のトレーニング記録"
+      closeLabel="記録一覧を閉じる"
     >
-      <div className="relative flex justify-center">
-        <span className="h-1 w-10 rounded-full bg-[#384255]" aria-hidden />
-        <button
-          type="button"
-          onClick={onCloseRecordPanel}
-          className="absolute right-0 top-0 flex size-7 items-center justify-center text-lg text-[#98a2b3]"
-          aria-label="記録一覧を閉じる"
-        >
-          ×
-        </button>
-      </div>
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-[#f8fafc]">本日の記録</h2>
         <span className="text-[11px] font-bold text-[#5b8cff]">
@@ -235,8 +218,7 @@ const MobileReportView = ({
         onDelete={onDeleteRecord}
       />
       {records.length > 0 && <AddRecordButton onClick={onAddRecord} />}
-    </aside>
-
+    </BottomSheet>
     <AppTabBar active="report" />
   </div>
 );
