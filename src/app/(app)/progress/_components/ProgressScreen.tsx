@@ -18,7 +18,6 @@ import type {
 
 const assets = {
   aiAvatar: "/assets/trainer-avatar.png",
-  chevronDown: "/assets/consult/chevron-down.svg",
   trendingUp: "/assets/trending-up.svg",
 } as const;
 

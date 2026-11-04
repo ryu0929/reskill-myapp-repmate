@@ -27,7 +27,6 @@ import type {
 } from "../_types/consult";
 
 const assets = {
-  chevronDown: "/assets/consult/chevron-down.svg",
   plusCircle: "/assets/consult/plus-circle.svg",
 } as const;
 
@@ -102,45 +101,6 @@ const GoalChangeActions = ({
       もう一度相談する
     </button>
   </div>
-);
-
-const CurrentGoalSummary = ({
-  goal,
-  isDeletingGoal,
-  isGoalDeleteConfirming,
-  onRequestGoalDelete,
-  onCancelGoalDelete,
-  onDeleteGoal,
-}: {
-  goal: GoalSummary;
-  isDeletingGoal: boolean;
-  isGoalDeleteConfirming: boolean;
-  onRequestGoalDelete: () => void;
-  onCancelGoalDelete: () => void;
-  onDeleteGoal: () => void;
-}) => (
-  <section className="w-full shrink-0 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-2">
-        <span
-          className="size-2 shrink-0 rounded-full bg-[#10b981]"
-          aria-hidden
-        />
-        <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
-      </div>
-      <GoalDeleteAction
-        isConfirming={isGoalDeleteConfirming}
-        isDeleting={isDeletingGoal}
-        onRequest={onRequestGoalDelete}
-        onCancel={onCancelGoalDelete}
-        onConfirm={onDeleteGoal}
-      />
-    </div>
-    <p className="mt-3 text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
-    <p className="mt-2 text-[13px] leading-[1.4] text-[#9ca3af]">
-      {goal.description}
-    </p>
-  </section>
 );
 
 const ConfiguredGoalView = ({
@@ -390,14 +350,23 @@ const MobileConsultView = ({
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 pb-3 pt-1">
         {/* チャット領域へ残りの高さを渡すため、外側ではスクロールを増やさない。 */}
         {goal && isReconsulting && (
-          <CurrentGoalSummary
-            goal={goal}
-            isDeletingGoal={isDeletingGoal}
-            isGoalDeleteConfirming={isGoalDeleteConfirming}
-            onRequestGoalDelete={onRequestGoalDelete}
-            onCancelGoalDelete={onCancelGoalDelete}
-            onDeleteGoal={onDeleteGoal}
-          />
+          <section className="flex w-full shrink-0 flex-col gap-2">
+            <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
+
+            <GoalCard
+              exercise={goal.exercise}
+              description={goal.description}
+              action={
+                <GoalDeleteAction
+                  isConfirming={isGoalDeleteConfirming}
+                  isDeleting={isDeletingGoal}
+                  onRequest={onRequestGoalDelete}
+                  onCancel={onCancelGoalDelete}
+                  onConfirm={onDeleteGoal}
+                />
+              }
+            />
+          </section>
         )}
         <ExerciseSelector
           exercise={exercise}
