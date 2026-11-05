@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppTabBar } from "@/components/AppTabBar";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
+import GoalCard from "@/components/GoalCard";
 import type {
   FitnessAppHomeProps,
   GoalSummary,
@@ -19,15 +20,7 @@ const MobileGoalSection = ({ goal }: { goal?: GoalSummary | null }) => (
   <section className="flex w-full flex-col gap-2">
     <h2 className="text-xs font-bold text-[#9ca3af]">今日の目標</h2>
     {goal ? (
-      <div className="flex flex-col gap-3 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-          <p className="text-sm font-bold text-[#f9fafb]">{goal.exercise}</p>
-        </div>
-        <p className="text-[13px] leading-[1.4] text-[#9ca3af]">
-          {goal.description}
-        </p>
-      </div>
+      <GoalCard exercise={goal.exercise} description={goal.description} />
     ) : (
       <div className="flex flex-col gap-3 rounded-lg border border-[#242c3b] bg-[#141822] p-4">
         <p className="text-[13px] leading-[1.4] text-[#9ca3af]">
@@ -223,15 +216,11 @@ const DesktopGoalPanel = ({ goal }: { goal?: GoalSummary | null }) => (
   <section className="flex min-w-0 flex-1 flex-col gap-2.5">
     <h2 className="text-sm font-bold text-[#98a2b3]">今日の目標</h2>
     {goal ? (
-      <div className="flex min-h-[180px] flex-col items-start gap-4 rounded-xl border border-[#273142] bg-[linear-gradient(164deg,#161c27_25%,#080b10_75%)] p-6">
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-          <p className="text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
-        </div>
-        <p className="text-sm leading-[1.5] text-[#98a2b3]">
-          {goal.description}
-        </p>
-      </div>
+      <GoalCard
+        exercise={goal.exercise}
+        description={goal.description}
+        desktop
+      />
     ) : (
       <div className="flex min-h-[180px] flex-col items-start gap-4 rounded-xl border border-[#273142] bg-[#161c27] p-6">
         <p className="text-sm leading-[1.5] text-[#98a2b3]">

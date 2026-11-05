@@ -18,6 +18,7 @@ import TrainingRecordList from "./TrainingRecordList";
 import AddRecordButton from "./AddRecordButton";
 import ReportSidePanel from "./ReportSidePanel";
 import ExerciseSelector from "@/components/ExerciseSelector";
+import GoalCard from "@/components/GoalCard";
 import BottomSheet from "@/components/BottomSheet";
 import Toast from "@/components/Toast";
 import useToast from "@/hooks/useToast";
@@ -75,24 +76,22 @@ const GoalSection = ({
   }
 
   return (
-    <section className="w-full shrink-0 rounded-lg border border-[#242c3b] bg-[linear-gradient(164deg,#141822_25%,#0b0d12_75%)] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-[#10b981]" aria-hidden />
-          <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
-        </div>
-        <GoalDeleteAction
-          isConfirming={isGoalDeleteConfirming}
-          isDeleting={isDeletingGoal}
-          onRequest={onRequestGoalDelete}
-          onCancel={onCancelGoalDelete}
-          onConfirm={onDeleteGoal}
-        />
-      </div>
-      <p className="mt-3 text-sm font-bold text-[#f8fafc]">{goal.exercise}</p>
-      <p className="mt-2 text-[13px] leading-[1.4] text-[#9ca3af]">
-        {goal.detail}
-      </p>
+    <section className="flex w-full shrink-0 flex-col gap-2">
+      <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
+
+      <GoalCard
+        exercise={goal.exercise}
+        description={goal.detail}
+        action={
+          <GoalDeleteAction
+            isConfirming={isGoalDeleteConfirming}
+            isDeleting={isDeletingGoal}
+            onRequest={onRequestGoalDelete}
+            onCancel={onCancelGoalDelete}
+            onConfirm={onDeleteGoal}
+          />
+        }
+      />
     </section>
   );
 };
