@@ -116,3 +116,18 @@ export type TrainingRecordListProps = Pick<
   onCancelEdit: () => void;
   onDelete: (recordId: string) => void;
 };
+
+export type ReportGoalSectionProps = Pick<
+  ReportViewProps,
+  | "goal"
+  | "isDeletingGoal"
+  | "isGoalDeleteConfirming"
+  | "onRequestGoalDelete"
+  | "onCancelGoalDelete"
+  | "onDeleteGoal"
+>;
+
+export type UseTrainingRecordsParams = {
+  exercise: Exercise;
+  showToast: (message: string) => void;
+};

@@ -1,30 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { AppTabBar } from "@/components/AppTabBar";
-import { GoalDeleteAction } from "@/components/GoalDeleteAction";
-import { MobileAppHeader } from "@/components/MobileAppHeader";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
-import RecordDraftCard from "./RecordDraftCard";
-import TrainingRecordList from "./TrainingRecordList";
-import AddRecordButton from "./AddRecordButton";
-import ReportSidePanel from "./ReportSidePanel";
-import ExerciseSelector from "@/components/ExerciseSelector";
-import GoalCard from "@/components/GoalCard";
-import BottomSheet from "@/components/BottomSheet";
+import MobileReportView from "./MobileReportView";
+import DesktopReportView from "./DesktopReportView";
 import Toast from "@/components/Toast";
 import useToast from "@/hooks/useToast";
-import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
-import type { TrainingRecordItem } from "@/lib/_types/training-record";
 import { EXERCISES } from "../_types/report";
 import type {
   Exercise,
@@ -33,6 +16,7 @@ import type {
   ReportViewProps,
   TrainingRecordDraft,
 } from "../_types/report";
+import useTrainingRecords from "../_hooks/useTrainingRecords";
 
 const createId = () => crypto.randomUUID();
 
@@ -52,275 +36,8 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
   createdAt: new Date().toISOString(),
 });
 
-const GoalSection = ({
-  goal,
-  isDeletingGoal,
-  isGoalDeleteConfirming,
-  onRequestGoalDelete,
-  onCancelGoalDelete,
-  onDeleteGoal,
-}: {
-  goal?: GoalSummary | null;
-  isDeletingGoal: boolean;
-  isGoalDeleteConfirming: boolean;
-  onRequestGoalDelete: () => void;
-  onCancelGoalDelete: () => void;
-  onDeleteGoal: () => void;
-}) => {
-  if (!goal) {
-    return (
-      <div className="flex w-full shrink-0 items-start py-2">
-        <p className="text-xs text-[#6b7280]">目標は未設定です</p>
-      </div>
-    );
-  }
-
-  return (
-    <section className="flex w-full shrink-0 flex-col gap-2">
-      <h2 className="text-sm font-bold text-[#f9fafb]">今日の目標</h2>
-
-      <GoalCard
-        exercise={goal.exercise}
-        description={goal.detail}
-        action={
-          <GoalDeleteAction
-            isConfirming={isGoalDeleteConfirming}
-            isDeleting={isDeletingGoal}
-            onRequest={onRequestGoalDelete}
-            onCancel={onCancelGoalDelete}
-            onConfirm={onDeleteGoal}
-          />
-        }
-      />
-    </section>
-  );
-};
-
-const MobileReportView = ({
-  goal,
-  exercise,
-  messages,
-  input,
-  isSending,
-  isSavingRecord,
-  isDeletingGoal,
-  isGoalDeleteConfirming,
-  isLoadingRecords,
-  isRecordPanelOpen,
-  showExercisePicker,
-  records,
-  recordDraft,
-  editingRecordId,
-  editWeight,
-  editReps,
-  chatAreaRef,
-  onExerciseToggle,
-  onExerciseChange,
-  onInputChange,
-  onRecordDraftChange,
-  onSaveRecord,
-  onCancelRecord,
-  onOpenRecordPanel,
-  onCloseRecordPanel,
-  onStartEditRecord,
-  onEditWeightChange,
-  onEditRepsChange,
-  onSaveRecordEdit,
-  onCancelRecordEdit,
-  onDeleteRecord,
-  onAddRecord,
-  onRequestGoalDelete,
-  onCancelGoalDelete,
-  onDeleteGoal,
-  onSubmit,
-}: ReportViewProps) => (
-  // SPはヘッダー・本文・ボトムナビを縦に並べ、記録一覧を下部シートで開く。
-  <div
-    className="relative mx-auto flex h-full w-full flex-col overflow-hidden bg-[#0b0d12] shadow-2xl"
-    data-name="/report"
-  >
-    <MobileAppHeader />
-
-    {/* mainだけをスクロール対象にして、固定ヘッダーとナビを常に表示する。 */}
-    <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4">
-      <GoalSection
-        goal={goal}
-        isDeletingGoal={isDeletingGoal}
-        isGoalDeleteConfirming={isGoalDeleteConfirming}
-        onRequestGoalDelete={onRequestGoalDelete}
-        onCancelGoalDelete={onCancelGoalDelete}
-        onDeleteGoal={onDeleteGoal}
-      />
-      <ExerciseSelector
-        exercise={exercise}
-        options={EXERCISES}
-        isOpen={showExercisePicker}
-        onToggle={onExerciseToggle}
-        onChange={onExerciseChange}
-      />
-      <button
-        type="button"
-        onClick={onOpenRecordPanel}
-        className="flex shrink-0 items-center justify-between rounded-lg border border-[#242c3b] bg-[#141822] px-3 py-2.5 text-left"
-      >
-        <span className="text-xs font-bold text-[#f8fafc]">本日の記録</span>
-        <span className="text-[11px] font-bold text-[#5b8cff]">
-          {records.length}セット
-        </span>
-      </button>
-      <TrainerChatArea
-        messages={messages}
-        isSending={isSending}
-        chatAreaRef={chatAreaRef}
-      />
-      {recordDraft && (
-        <RecordDraftCard
-          draft={recordDraft}
-          isSaving={isSavingRecord}
-          onChange={onRecordDraftChange}
-          onSave={onSaveRecord}
-          onCancel={onCancelRecord}
-        />
-      )}
-      <TrainerChatInput
-        input={input}
-        isSending={isSending}
-        placeholder="60kg 10回 3セット行いました"
-        onChange={onInputChange}
-        onSubmit={onSubmit}
-      />
-    </main>
-
-    <BottomSheet
-      isOpen={isRecordPanelOpen}
-      onClose={onCloseRecordPanel}
-      ariaLabel="本日のトレーニング記録"
-      closeLabel="記録一覧を閉じる"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold text-[#f8fafc]">本日の記録</h2>
-        <span className="text-[11px] font-bold text-[#5b8cff]">
-          {records.length}セット
-        </span>
-      </div>
-      <TrainingRecordList
-        records={records}
-        isLoadingRecords={isLoadingRecords}
-        editingRecordId={editingRecordId}
-        editWeight={editWeight}
-        editReps={editReps}
-        onStartEdit={onStartEditRecord}
-        onEditWeightChange={onEditWeightChange}
-        onEditRepsChange={onEditRepsChange}
-        onSaveEdit={onSaveRecordEdit}
-        onCancelEdit={onCancelRecordEdit}
-        onDelete={onDeleteRecord}
-      />
-      {records.length > 0 && <AddRecordButton onClick={onAddRecord} />}
-    </BottomSheet>
-    <AppTabBar active="report" />
-  </div>
-);
-
-const DesktopReportView = ({
-  goal,
-  exercise,
-  messages,
-  input,
-  isSending,
-  isSavingRecord,
-  isDeletingGoal,
-  isGoalDeleteConfirming,
-  isLoadingRecords,
-  showExercisePicker,
-  records,
-  recordDraft,
-  editingRecordId,
-  editWeight,
-  editReps,
-  chatAreaRef,
-  onExerciseToggle,
-  onExerciseChange,
-  onInputChange,
-  onRecordDraftChange,
-  onSaveRecord,
-  onCancelRecord,
-  onStartEditRecord,
-  onEditWeightChange,
-  onEditRepsChange,
-  onSaveRecordEdit,
-  onCancelRecordEdit,
-  onDeleteRecord,
-  onAddRecord,
-  onRequestGoalDelete,
-  onCancelGoalDelete,
-  onDeleteGoal,
-  onSubmit,
-}: ReportViewProps) => (
-  // PCは左側をチャットと入力、右側を目標と本日の記録に分割する。
-  <main className="flex min-h-0 flex-1">
-    <section className="flex min-w-0 flex-1 flex-col items-center justify-between px-10 py-6">
-      <div className="flex min-h-0 w-full max-w-[720px] flex-1 flex-col gap-5">
-        <ExerciseSelector
-          exercise={exercise}
-          options={EXERCISES}
-          isOpen={showExercisePicker}
-          onToggle={onExerciseToggle}
-          onChange={onExerciseChange}
-          desktop
-        />
-        <TrainerChatArea
-          messages={messages}
-          isSending={isSending}
-          chatAreaRef={chatAreaRef}
-          desktop
-        />
-      </div>
-      <div className="flex w-full max-w-[720px] flex-col gap-3">
-        {recordDraft && (
-          <RecordDraftCard
-            draft={recordDraft}
-            isSaving={isSavingRecord}
-            onChange={onRecordDraftChange}
-            onSave={onSaveRecord}
-            onCancel={onCancelRecord}
-          />
-        )}
-        <TrainerChatInput
-          input={input}
-          isSending={isSending}
-          placeholder="60kg 10回 3セット行いました"
-          onChange={onInputChange}
-          onSubmit={onSubmit}
-          desktop
-        />
-      </div>
-    </section>
-    <ReportSidePanel
-      goal={goal}
-      records={records}
-      isDeletingGoal={isDeletingGoal}
-      isGoalDeleteConfirming={isGoalDeleteConfirming}
-      isLoadingRecords={isLoadingRecords}
-      editingRecordId={editingRecordId}
-      editWeight={editWeight}
-      editReps={editReps}
-      onStartEditRecord={onStartEditRecord}
-      onEditWeightChange={onEditWeightChange}
-      onEditRepsChange={onEditRepsChange}
-      onSaveRecordEdit={onSaveRecordEdit}
-      onCancelRecordEdit={onCancelRecordEdit}
-      onDeleteRecord={onDeleteRecord}
-      onAddRecord={onAddRecord}
-      onRequestGoalDelete={onRequestGoalDelete}
-      onCancelGoalDelete={onCancelGoalDelete}
-      onDeleteGoal={onDeleteGoal}
-    />
-  </main>
-);
-
 const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
-  // 記録の状態とAPI処理はここに集約し、モバイル・PCで共有する。
+  // チャットや画面表示の状態を管理し、モバイル・PCへ共通データを渡す。
   const router = useRouter();
   const defaultExercise =
     EXERCISES.find((item) => item === goal?.exercise) ?? "スクワット";
@@ -334,54 +51,37 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   const [isSavingRecord, setIsSavingRecord] = useState(false);
   const [isDeletingGoal, setIsDeletingGoal] = useState(false);
   const [isGoalDeleteConfirming, setIsGoalDeleteConfirming] = useState(false);
-  const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const [isRecordPanelOpen, setIsRecordPanelOpen] = useState(false);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
-  const [records, setRecords] = useState<TrainingRecordItem[]>([]);
   const [recordDraft, setRecordDraft] = useState<TrainingRecordDraft | null>(
     null,
   );
-  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
-  const [editWeight, setEditWeight] = useState("");
-  const [editReps, setEditReps] = useState("");
+
   const { toastMessage, showToast } = useToast();
+  const {
+    records,
+    isLoadingRecords,
+    editingRecordId,
+    editWeight,
+    editReps,
+    beginLoadingRecords,
+    loadRecords,
+    startEditRecord,
+    setEditWeight,
+    setEditReps,
+    saveRecordEdit,
+    cancelRecordEdit,
+    deleteRecord,
+  } = useTrainingRecords({
+    exercise,
+    showToast,
+  });
   const mobileChatAreaRef = useRef<HTMLDivElement>(null);
   const desktopChatAreaRef = useRef<HTMLDivElement>(null);
 
   const apiMessages = useMemo(
     () => messages.map(({ role, content }) => ({ role, content })),
     [messages],
-  );
-
-  // 選択した種目の「今日の記録」だけをAPIから取得する。
-  const fetchRecords = useCallback(async (targetExercise: Exercise) => {
-    const response = await fetch(
-      `/api/training-records?exercise=${encodeURIComponent(targetExercise)}`,
-    );
-    const data = (await response.json()) as {
-      records?: TrainingRecordItem[];
-      error?: string;
-    };
-
-    if (!response.ok || !data.records) {
-      throw new Error(data.error ?? "記録を取得できませんでした");
-    }
-
-    return data.records;
-  }, []);
-
-  // 登録・更新・削除後も同じ関数で一覧を再取得する。
-  const loadRecords = useCallback(
-    async (targetExercise: Exercise) => {
-      setIsLoadingRecords(true);
-      try {
-        const nextRecords = await fetchRecords(targetExercise);
-        setRecords(nextRecords);
-      } finally {
-        setIsLoadingRecords(false);
-      }
-    },
-    [fetchRecords],
   );
 
   useEffect(() => {
@@ -392,31 +92,6 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     scrollChatToBottom(mobileChatAreaRef.current);
     scrollChatToBottom(desktopChatAreaRef.current);
   }, [messages, isSending]);
-
-  useEffect(() => {
-    let ignore = false;
-
-    void fetchRecords(exercise)
-      .then((nextRecords) => {
-        if (!ignore) setRecords(nextRecords);
-      })
-      .catch((error: unknown) => {
-        if (!ignore) {
-          showToast(
-            error instanceof Error
-              ? error.message
-              : "記録を取得できませんでした",
-          );
-        }
-      })
-      .finally(() => {
-        if (!ignore) setIsLoadingRecords(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [exercise, fetchRecords, showToast]);
 
   // AIへの報告と、正規表現による記録候補の作成を同時に行う。
   const sendMessage = async (event?: FormEvent) => {
@@ -483,13 +158,13 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   };
 
   const handleExerciseChange = (next: Exercise) => {
-    setIsLoadingRecords(true);
+    beginLoadingRecords();
     setExercise(next);
     setShowExercisePicker(false);
     setMessages([welcomeMessage(next)]);
     setInput("");
     setRecordDraft(null);
-    setEditingRecordId(null);
+    cancelRecordEdit();
     setIsGoalDeleteConfirming(false);
   };
 
@@ -541,81 +216,12 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     }
   };
 
-  const startEditRecord = (record: TrainingRecordItem) => {
-    setEditingRecordId(record.id);
-    setEditWeight(String(record.weight));
-    setEditReps(String(record.reps));
-  };
-
-  const cancelRecordEdit = () => {
-    setEditingRecordId(null);
-    setEditWeight("");
-    setEditReps("");
-  };
-
-  // 編集対象のidをURLへ含め、変更した重量と回数だけを更新する。
-  const saveRecordEdit = async () => {
-    if (!editingRecordId) return;
-
-    const weight = Number(editWeight);
-    const reps = Number(editReps);
-    if (!weight || !reps) {
-      showToast("重量と回数を確認してください");
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/training-records/${editingRecordId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ weight, reps }),
-      });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        throw new Error(data.error ?? "記録を更新できませんでした");
-      }
-
-      cancelRecordEdit();
-      await loadRecords(exercise);
-      showToast("記録を更新しました");
-      router.refresh();
-    } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : "記録を更新できませんでした",
-      );
-    }
-  };
-
-  // 誤操作を防ぐため、確認後に削除して一覧を読み直す。
-  const deleteRecord = async (recordId: string) => {
-    if (!window.confirm("このトレーニング記録を削除しますか？")) return;
-
-    try {
-      const response = await fetch(`/api/training-records/${recordId}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error ?? "記録を削除できませんでした");
-      }
-
-      if (editingRecordId === recordId) cancelRecordEdit();
-      await loadRecords(exercise);
-      showToast("記録を削除しました");
-      router.refresh();
-    } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : "記録を削除できませんでした",
-      );
-    }
-  };
-
   // 直前セットの値を引き継ぎ、1セット分の確認カードを開く。
   const addRecord = () => {
     const latestRecord = records[records.length - 1];
     if (!latestRecord) return;
 
-    setEditingRecordId(null);
+    cancelRecordEdit();
     setRecordDraft({
       weight: String(latestRecord.weight),
       reps: String(latestRecord.reps),
