@@ -131,3 +131,8 @@ export type UseTrainingRecordsParams = {
   exercise: Exercise;
   showToast: (message: string) => void;
 };
+
+export type UseReportChatParams = {
+  exercise: Exercise;
+  onRecordParsed: (draft: TrainingRecordDraft) => void;
+};

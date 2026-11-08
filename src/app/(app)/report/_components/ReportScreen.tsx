@@ -1,13 +1,13 @@
 "use client";
-
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import MobileReportView from "./MobileReportView";
 import DesktopReportView from "./DesktopReportView";
 import Toast from "@/components/Toast";
 import useToast from "@/hooks/useToast";
-import type { ChatMessage } from "@/lib/chat-types";
+import useReportChat from "../_hooks/useReportChat";
 import { EXERCISES } from "../_types/report";
 import type {
   Exercise,
@@ -18,24 +18,6 @@ import type {
 } from "../_types/report";
 import useTrainingRecords from "../_hooks/useTrainingRecords";
 
-const createId = () => crypto.randomUUID();
-
-const parseTrainingRecord = (message: string): TrainingRecordDraft | null => {
-  // 「60kg 10回 3セット」のような文章から、確認カード用の数値を取り出す。
-  const weight = message.match(/(\d+(?:\.\d+)?)\s*kg/i)?.[1];
-  const reps = message.match(/(\d+)\s*(?:回|レップ(?:ス)?)/)?.[1];
-  const sets = message.match(/(\d+)\s*セット(?!目)/)?.[1] ?? "1";
-
-  return weight && reps ? { weight, reps, sets } : null;
-};
-
-const welcomeMessage = (exercise: string): ChatMessage => ({
-  id: createId(),
-  role: "assistant",
-  content: `${exercise}のトレーニングを記録しましょう！セットごとに重量とレップス数を教えてください。`,
-  createdAt: new Date().toISOString(),
-});
-
 const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   // チャットや画面表示の状態を管理し、モバイル・PCへ共通データを渡す。
   const router = useRouter();
@@ -43,11 +25,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     EXERCISES.find((item) => item === goal?.exercise) ?? "スクワット";
   const [exercise, setExercise] = useState<Exercise>(defaultExercise);
   const [activeGoal, setActiveGoal] = useState<GoalSummary | null>(goal);
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    welcomeMessage(defaultExercise),
-  ]);
-  const [input, setInput] = useState("");
-  const [isSending, setIsSending] = useState(false);
+
   const [isSavingRecord, setIsSavingRecord] = useState(false);
   const [isDeletingGoal, setIsDeletingGoal] = useState(false);
   const [isGoalDeleteConfirming, setIsGoalDeleteConfirming] = useState(false);
@@ -56,6 +34,20 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   const [recordDraft, setRecordDraft] = useState<TrainingRecordDraft | null>(
     null,
   );
+
+  const {
+    messages,
+    input,
+    isSending,
+    mobileChatAreaRef,
+    desktopChatAreaRef,
+    setInput,
+    sendMessage,
+    resetChat,
+  } = useReportChat({
+    exercise,
+    onRecordParsed: setRecordDraft,
+  });
 
   const { toastMessage, showToast } = useToast();
   const {
@@ -76,93 +68,12 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     exercise,
     showToast,
   });
-  const mobileChatAreaRef = useRef<HTMLDivElement>(null);
-  const desktopChatAreaRef = useRef<HTMLDivElement>(null);
-
-  const apiMessages = useMemo(
-    () => messages.map(({ role, content }) => ({ role, content })),
-    [messages],
-  );
-
-  useEffect(() => {
-    const scrollChatToBottom = (element: HTMLDivElement | null) => {
-      element?.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
-    };
-
-    scrollChatToBottom(mobileChatAreaRef.current);
-    scrollChatToBottom(desktopChatAreaRef.current);
-  }, [messages, isSending]);
-
-  // AIへの報告と、正規表現による記録候補の作成を同時に行う。
-  const sendMessage = async (event?: FormEvent) => {
-    event?.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed || isSending) return;
-
-    const userMessage: ChatMessage = {
-      id: createId(),
-      role: "user",
-      content: trimmed,
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsSending(true);
-
-    const parsedRecord = parseTrainingRecord(trimmed);
-    if (parsedRecord) {
-      setRecordDraft(parsedRecord);
-    }
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          exercise,
-          mode: "report",
-          messages: [
-            ...apiMessages,
-            { role: "user" as const, content: trimmed },
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Chat API failed");
-      }
-
-      const data = (await response.json()) as { reply: string };
-      const assistantMessage: ChatMessage = {
-        id: createId(),
-        role: "assistant",
-        content: data.reply,
-        createdAt: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch {
-      const assistantMessage: ChatMessage = {
-        id: createId(),
-        role: "assistant",
-        content:
-          "申し訳ありません。応答の取得に失敗しました。しばらくしてからもう一度お試しください。",
-        createdAt: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } finally {
-      setIsSending(false);
-    }
-  };
 
   const handleExerciseChange = (next: Exercise) => {
     beginLoadingRecords();
     setExercise(next);
     setShowExercisePicker(false);
-    setMessages([welcomeMessage(next)]);
-    setInput("");
+    resetChat(next);
     setRecordDraft(null);
     cancelRecordEdit();
     setIsGoalDeleteConfirming(false);
