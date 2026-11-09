@@ -136,3 +136,9 @@ export type UseReportChatParams = {
   exercise: Exercise;
   onRecordParsed: (draft: TrainingRecordDraft) => void;
 };
+
+export type UseReportGoalParams = {
+  initialGoal?: GoalSummary | null;
+  exercise: Exercise;
+  showToast: (message: string) => void;
+};

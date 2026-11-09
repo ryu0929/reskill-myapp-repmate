@@ -8,10 +8,10 @@ import DesktopReportView from "./DesktopReportView";
 import Toast from "@/components/Toast";
 import useToast from "@/hooks/useToast";
 import useReportChat from "../_hooks/useReportChat";
+import useReportGoal from "../_hooks/useReportGoal";
 import { EXERCISES } from "../_types/report";
 import type {
   Exercise,
-  GoalSummary,
   ReportScreenProps,
   ReportViewProps,
   TrainingRecordDraft,
@@ -24,11 +24,9 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   const defaultExercise =
     EXERCISES.find((item) => item === goal?.exercise) ?? "スクワット";
   const [exercise, setExercise] = useState<Exercise>(defaultExercise);
-  const [activeGoal, setActiveGoal] = useState<GoalSummary | null>(goal);
 
   const [isSavingRecord, setIsSavingRecord] = useState(false);
-  const [isDeletingGoal, setIsDeletingGoal] = useState(false);
-  const [isGoalDeleteConfirming, setIsGoalDeleteConfirming] = useState(false);
+
   const [isRecordPanelOpen, setIsRecordPanelOpen] = useState(false);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [recordDraft, setRecordDraft] = useState<TrainingRecordDraft | null>(
@@ -50,6 +48,20 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
   });
 
   const { toastMessage, showToast } = useToast();
+
+  const {
+    selectedExerciseGoal,
+    isDeletingGoal,
+    isGoalDeleteConfirming,
+    requestGoalDelete,
+    cancelGoalDelete,
+    deleteGoal,
+  } = useReportGoal({
+    initialGoal: goal,
+    exercise,
+    showToast,
+  });
+
   const {
     records,
     isLoadingRecords,
@@ -76,7 +88,7 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     resetChat(next);
     setRecordDraft(null);
     cancelRecordEdit();
-    setIsGoalDeleteConfirming(false);
+    cancelGoalDelete();
   };
 
   const handleRecordDraftChange = (
@@ -141,36 +153,6 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     setIsRecordPanelOpen(false);
   };
 
-  // 表示中の目標を論理削除し、画面からもすぐに取り除く。
-  const deleteGoal = async () => {
-    if (!activeGoal || isDeletingGoal) return;
-
-    setIsDeletingGoal(true);
-    try {
-      const response = await fetch(`/api/goals/${activeGoal.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error ?? "目標を削除できませんでした");
-      }
-
-      setActiveGoal(null);
-      setIsGoalDeleteConfirming(false);
-      showToast("目標を削除しました");
-      router.refresh();
-    } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : "目標を削除できませんでした",
-      );
-    } finally {
-      setIsDeletingGoal(false);
-    }
-  };
-
-  const selectedExerciseGoal =
-    activeGoal?.exercise === exercise ? activeGoal : null;
-
   // refだけは画面ごとに異なるため、それ以外を共通Propsとしてまとめる。
   const viewProps: Omit<ReportViewProps, "chatAreaRef"> = {
     goal: selectedExerciseGoal,
@@ -204,8 +186,8 @@ const ReportScreen = ({ goal = null, userName }: ReportScreenProps) => {
     onCancelRecordEdit: cancelRecordEdit,
     onDeleteRecord: deleteRecord,
     onAddRecord: addRecord,
-    onRequestGoalDelete: () => setIsGoalDeleteConfirming(true),
-    onCancelGoalDelete: () => setIsGoalDeleteConfirming(false),
+    onRequestGoalDelete: requestGoalDelete,
+    onCancelGoalDelete: cancelGoalDelete,
     onDeleteGoal: deleteGoal,
     onSubmit: sendMessage,
   };
