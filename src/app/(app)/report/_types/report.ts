@@ -142,3 +142,11 @@ export type UseReportGoalParams = {
   exercise: Exercise;
   showToast: (message: string) => void;
 };
+
+export type UseRecordDraftParams = {
+  exercise: Exercise;
+  records: TrainingRecordItem[];
+  loadRecords: (exercise: Exercise) => Promise<void>;
+  cancelRecordEdit: () => void;
+  showToast: (message: string) => void;
+};
