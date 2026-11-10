@@ -111,7 +111,6 @@ export const POST = async (request: Request) => {
     return NextResponse.json({
       goal: {
         id: savedGoal.id,
-        title: savedGoal.title,
         description: savedGoal.description,
         statusLabel: "設定済み",
       },

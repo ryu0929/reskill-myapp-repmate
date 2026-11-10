@@ -11,10 +11,8 @@ const toResponseRecord = (record: {
   setOrder: number;
   memo: string | null;
   recordedAt: Date;
-  exercise: { name: string };
 }) => ({
   id: record.id,
-  exercise: record.exercise.name,
   weight: record.weight.toNumber(),
   reps: record.reps,
   setOrder: record.setOrder,
@@ -57,7 +55,6 @@ export const GET = async (request: Request) => {
       recordedAt: { gte: start, lt: end },
       ...(exercise ? { exercise: { name: exercise } } : {}),
     },
-    include: { exercise: { select: { name: true } } },
     orderBy: [{ recordedAt: "asc" }, { setOrder: "asc" }],
   });
 
@@ -143,7 +140,6 @@ export const POST = async (request: Request) => {
 
       return transaction.trainingRecord.findMany({
         where: { reportId: report.id },
-        include: { exercise: { select: { name: true } } },
         orderBy: { setOrder: "asc" },
       });
     });

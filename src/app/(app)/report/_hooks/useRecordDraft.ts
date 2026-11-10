@@ -88,7 +88,7 @@ const useRecordDraft = ({
     if (!latestRecord) return;
 
     cancelRecordEdit();
-    
+
     setRecordDraft({
       weight: String(latestRecord.weight),
       reps: String(latestRecord.reps),

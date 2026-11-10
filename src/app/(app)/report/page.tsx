@@ -16,7 +16,6 @@ const ReportPage = async () => {
           ? {
               id: activeGoal.id,
               exercise: activeGoal.exerciseName,
-              title: activeGoal.title,
               detail: activeGoal.description,
             }
           : null

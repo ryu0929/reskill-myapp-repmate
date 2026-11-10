@@ -799,7 +799,6 @@ export const ConsultScreen = ({
       const data = (await response.json()) as {
         goal?: {
           id: string;
-          title: string;
           description: string;
           statusLabel: string;
         };
@@ -817,7 +816,6 @@ export const ConsultScreen = ({
       setActiveGoal({
         id: data.goal.id,
         exercise,
-        name: data.goal.title,
         statusLabel: data.goal.statusLabel,
         description: data.goal.description,
       });

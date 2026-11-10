@@ -114,7 +114,6 @@ export const PATCH = async (request: Request, context: GoalRouteContext) => {
     return NextResponse.json({
       goal: {
         id: updatedGoal.id,
-        title: updatedGoal.title,
         description: updatedGoal.description,
         statusLabel: "設定済み",
       },

@@ -16,7 +16,6 @@ const ConsultPage = async () => {
           ? {
               id: activeGoal.id,
               exercise: activeGoal.exerciseName,
-              name: activeGoal.title,
               statusLabel: "設定済み",
               description: activeGoal.description,
             }

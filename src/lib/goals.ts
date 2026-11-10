@@ -23,9 +23,7 @@ export const getActiveGoal = async (
 
   return {
     id: goal.id,
-    title: goal.title,
     description: goal.description,
-    status: goal.status,
     exerciseName: goal.exercise.name,
   };
 };

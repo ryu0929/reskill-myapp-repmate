@@ -35,7 +35,6 @@ const Mypage = async () => {
     gender,
     email: user.email ?? "",
     trainingHistory: "トレーニング歴 未設定",
-    streakLabel: "継続 0週間",
     initials: "RM",
   };
 

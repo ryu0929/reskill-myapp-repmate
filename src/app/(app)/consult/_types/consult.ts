@@ -13,7 +13,6 @@ export type Exercise = (typeof EXERCISES)[number];
 export type GoalSummary = {
   id: string;
   exercise: string;
-  name: string;
   statusLabel: string;
   description: string;
 };

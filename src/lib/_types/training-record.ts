@@ -1,6 +1,5 @@
 export type TrainingRecordItem = {
   id: string;
-  exercise: string;
   weight: number;
   reps: number;
   setOrder: number;

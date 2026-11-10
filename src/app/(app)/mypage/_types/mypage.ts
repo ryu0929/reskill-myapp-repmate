@@ -21,7 +21,6 @@ export type UserProfile = {
   gender: Gender;
   email: string;
   trainingHistory: string;
-  streakLabel: string;
   initials: string;
 };
 
