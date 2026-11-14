@@ -18,7 +18,8 @@ const createMockReply = (exercise: string, mode: "consult" | "report") =>
     : `${exercise}ですね。現在の体調を優先しながら、無理のない重量でフォームを確認しましょう。` +
       "今日は回数とセット数を具体的に決めると、取り組みやすい目標になります。";
 
-const shouldUseMockAi = process.env.USE_MOCK_AI === "true";
+// Geminiを一時停止し、デプロイ環境でも固定応答を返す。
+const shouldUseMockAi = true;
 
 // 外部から届くJSONはunknownとして受け取り、必要な形か実行時に検証する。
 const isChatRequestBody = (value: unknown): value is ChatRequestBody => {

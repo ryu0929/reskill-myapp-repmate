@@ -7,6 +7,9 @@ import { GoalDeleteAction } from "@/components/GoalDeleteAction";
 import { MobileAppHeader } from "@/components/MobileAppHeader";
 import { ResponsiveScreen } from "@/components/ResponsiveScreen";
 import GoalCard from "@/components/GoalCard";
+import ConfiguredGoalView from "./ConfiguredGoalView";
+import GoalProposalCard from "./GoalProposalCard";
+import GoalChangeActions from "./GoalChangeActions";
 import ExerciseSelector from "@/components/ExerciseSelector";
 import BottomSheet from "@/components/BottomSheet";
 import Toast from "@/components/Toast";
@@ -15,14 +18,11 @@ import { TrainerChatArea, TrainerChatInput } from "@/components/TrainerChat";
 import type { ChatMessage } from "@/lib/chat-types";
 import { EXERCISES } from "../_types/consult";
 import type {
-  ConfiguredGoalViewProps,
   ConsultScreenProps,
   ConsultViewProps,
   Exercise,
-  GoalChangeActionsProps,
   GoalComposerContentProps,
   GoalProposal,
-  GoalProposalCardProps,
   GoalSummary,
 } from "../_types/consult";
 
@@ -41,113 +41,6 @@ const welcomeMessage = (exercise: string): ChatMessage => ({
   content: `こんにちは！今日は${exercise}について相談ですね。現在の記録と目標を教えてください。`,
   createdAt: new Date().toISOString(),
 });
-
-const GoalProposalCard = ({
-  proposal,
-  selected,
-  onSelect,
-}: GoalProposalCardProps) => (
-  <button
-    type="button"
-    onClick={onSelect}
-    aria-pressed={selected}
-    className={`w-full rounded-lg border p-4 text-left transition-colors duration-200 ${
-      selected
-        ? "border-[#2463eb] bg-[#17213a]"
-        : "border-[#273142] bg-[#141822] hover:border-[#384866]"
-    }`}
-  >
-    <span className="flex items-start gap-2">
-      <span
-        className={`mt-1 size-2 shrink-0 rounded-full transition-colors ${
-          selected ? "bg-[#2463eb]" : "bg-[#667085]"
-        }`}
-        aria-hidden
-      />
-      <span className="min-w-0">
-        <span className="block text-sm font-bold text-[#f8fafc]">
-          {proposal.title}
-        </span>
-        <span className="mt-2 block text-[13px] leading-[1.5] text-[#98a2b3]">
-          {proposal.description}
-        </span>
-      </span>
-    </span>
-  </button>
-);
-
-const GoalChangeActions = ({
-  onChangeGoal,
-  onRestartConsultation,
-  compact = false,
-}: GoalChangeActionsProps) => (
-  <div
-    className={
-      compact ? "grid shrink-0 grid-cols-2 gap-2" : "flex flex-col gap-2"
-    }
-  >
-    <button
-      type="button"
-      onClick={onChangeGoal}
-      className="flex min-h-11 items-center justify-center rounded-lg border border-[#2463eb] px-3 py-2.5 text-[13px] font-bold text-[#5b8cff] transition-colors hover:bg-[#17213a]"
-    >
-      候補から選びなおす
-    </button>
-    <button
-      type="button"
-      onClick={onRestartConsultation}
-      className="flex min-h-11 items-center justify-center rounded-lg bg-[#2463eb] px-3 py-2.5 text-[13px] font-bold text-[#f8fafc] transition-opacity hover:opacity-90"
-    >
-      もう一度相談する
-    </button>
-  </div>
-);
-
-const ConfiguredGoalView = ({
-  goal,
-  isDeletingGoal,
-  isGoalDeleteConfirming,
-  onChangeGoal,
-  onRestartConsultation,
-  onRequestGoalDelete,
-  onCancelGoalDelete,
-  onDeleteGoal,
-  desktop = false,
-}: ConfiguredGoalViewProps) => (
-  <section
-    className={`flex min-h-0 flex-1 flex-col items-center justify-center ${
-      desktop ? "px-10 py-8" : "overflow-y-auto px-5 pb-5 pt-1"
-    }`}
-  >
-    <div className="flex w-full max-w-[640px] flex-col gap-5">
-      <div>
-        <p className="text-xs font-bold text-[#98a2b3]">設定中の目標</p>
-        <h2 className="mt-1 text-xl font-bold text-[#f8fafc]">今日の目標</h2>
-      </div>
-
-      <GoalCard
-        exercise={goal.exercise}
-        description={goal.description}
-        desktop={desktop}
-        action={
-          <GoalDeleteAction
-            isConfirming={isGoalDeleteConfirming}
-            isDeleting={isDeletingGoal}
-            onRequest={onRequestGoalDelete}
-            onCancel={onCancelGoalDelete}
-            onConfirm={onDeleteGoal}
-          />
-        }
-      />
-
-      <GoalChangeActions
-        onChangeGoal={onChangeGoal}
-        onRestartConsultation={onRestartConsultation}
-        compact={!desktop}
-      />
-    </div>
-  </section>
-);
 
 const GoalComposerContent = ({
   goal,

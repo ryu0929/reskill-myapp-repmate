@@ -40,7 +40,8 @@ const createMockProposals = (exercise: string) => [
   },
 ];
 
-const shouldUseMockAi = process.env.USE_MOCK_AI === "true";
+// Geminiを一時停止し、デプロイ環境でも固定候補を返す。
+const shouldUseMockAi = true;
 
 // POST /api/goals/proposals: AIとの会話を基に、今日の目標候補を2〜3件作る。
 export const POST = async (request: Request) => {
